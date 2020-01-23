@@ -23,6 +23,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     plateNames      <- substr(sampleNames,21,30)
     groupNames      <- substr(sampleNames, 32, 43)
     controlNames    <-  names(greenControls)
+    targets <- shinyMethylSet1@phenotype
     
     
     method <- shinyMethylSet1@originObject
@@ -249,8 +250,8 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       },
       content = function(file) {
         png(file)
-        minfi::densityPlot(bMatrix, sampGroups = groupNames)
-        minfi::densityPlot(bMatrix2, sampGroups = groupNames)
+        minfi::densityPlot(bMatrix, sampGroups = targets$Sample_Group)
+        minfi::densityPlot(bMatrix2, sampGroups = targets$Sample_Group)
         dev.off()
       }
     )  
@@ -350,7 +351,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     
     output$reportDownload <- downloadHandler(
       filename = function(){
-        paste("report", "pdf", sep = "")
+        paste("report", ".pdf", sep = "")
       },
       content = function(file){
         pdf(file)
@@ -363,5 +364,12 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       }
     )
     
-    
+    output$beanPlot <-renderPlot({
+      #arrName <- targets$Array
+      #arrName <- substr(colnames(subset_bvals), 14, 19)
+      x <- melt(subset_bvals, varnames=c("cpg","array"))
+      head(x, 6)
+      ggplot(x, aes(x=array, y=value)) + geom_violin()
+      
+    })
   }}

@@ -101,11 +101,12 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                  HTML('</td></tr></table>'),
                  plotOutput("rawDensities", click="click_action"),
                  verbatimTextOutput("click_info"),
-                 HTML("<p><span style=\"color:#336666;font-size:16px\">
-			      Normalized data:</span></p>"),
                  conditionalPanel(condition= "!is.null(shinyMethylSet2)",
+                                  HTML("<p><span style=\"color:#336666;font-size:16px\">
+			      Normalized data:</span></p>"),
                                   plotOutput("normDensities",
                                              click = "normHover")),
+                 plotOutput("beanPlot"),
                  HTML("<p><span style=\"color:#336666;font-size:16px\">
 			      Download beta-values:</span></p>"),
                  downloadLink("betamatrixDownload", "b_values.csv"),

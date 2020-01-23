@@ -61,8 +61,9 @@ rgSet
 
 
 directory <- "~/Documents/shiny01/shinyHome01"
-directory <- "/home/aina/Internship/shinyHome01"
-source(paste0(directory, "/", "MethylationShiny00.R"))
+directory <- "/home/aina/Internship/methylation-shiny"
+source(paste0(directory, "/", "ui.R"))
+source(paste0(directory, "/", "server.R"))
 source(paste0(directory, "/", "shinyMethylSet.R"))
 source(paste0(directory, "/", "shinySummarize0.R"))
 source(paste0(directory, "/", "plotDensities.R"))
@@ -79,6 +80,9 @@ summary1 <- shinySummarize(RGSetEx)
 targetsEx$ID <- paste(targetsEx$Slide,targetsEx$Array, targetsEx$Sample_Name,targetsEx$Sample_Group, sep=".")
 mSetSq <- preprocessQuantile(RGSetEx)
 summary1.norm <- shinySummarize(mSetSq)
+shinyApp(ui=ui.methylation(summary1), server = server.methylation(summary1))
+shinyApp(ui=ui.methylation(summary1,summary1.norm ), server = server.methylation(summary1, summary1.norm))
+
 
 
 ### Real data
