@@ -8,7 +8,9 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
       bMatrix <- shinyMethylSet1@betaMatrix
       if (!is.null(shinyMethylSet2)){
         bMatrix2 <- shinyMethylSet2@betaMatrix
+        mMatrix2 <- shinyMethylSet2@mMatrix
       }
+      #mMatrix <- shinyMethylSet1@mMatrix
       greenControls   <- getGreenControls(shinyMethylSet1)
       redControls     <- getRedControls(shinyMethylSet1)
       covariates      <<-pData(shinyMethylSet1)
@@ -170,7 +172,11 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                                multiple= FALSE),
                    plotOutput("probeBiasPlot"),
                    conditionalPanel(condition= "!is.null(shinyMethylSet2)", plotOutput("probeBiasPlotNorm"))
-          )
+          ),
+          tabPanel("Downloads", 
+                   checkboxGroupInput("selectedPlots", "Select:", choices = c("Raw Beta-values", 
+                                                                              "Raw m-values", "Normalized beta-values", "Failed Probes", "PCA")),
+                   downloadButton("reportDownload", label = "Download"))
         )
       )
     )
@@ -187,7 +193,10 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     bMatrix <- shinyMethylSet1@betaMatrix
     if (!is.null(shinyMethylSet2)){
       bMatrix2 <- shinyMethylSet2@betaMatrix
+      mMatrix2 <- shinyMethylSet2@mMatrix
+      
     }
+    #mMatrix <- shinyMethylSet1@mMatrix
     greenControls   <-  getGreenControls(shinyMethylSet1)
     redControls     <-  getRedControls(shinyMethylSet1)
     covariates      <<- pData(shinyMethylSet1)
@@ -524,7 +533,20 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     plotFailedPropProbes(detP = detP, targets$Sample_Name)
   })
   
-  
+  output$reportDownload <- downloadHandler(
+    filename = function(){
+      paste("report", "pdf", sep = "")
+    },
+    content = function(file){
+      pdf(file)
+      par(mfrow=c(2,2))
+      minfi::densityPlot(bMatrix, sampGroups = targets$Sample_Group)
+      minfi::densityPlot(bMatrix2, sampGroups = targets$Sample_Group)   
+      minfi::densityPlot(mMatrix2, sampGroups = targets$Sample_Group)   
+      plotFailedPropProbes(detP = detP, targets$Sample_Name)
+      dev.off()
+      }
+  )
   
   
   }}
@@ -535,4 +557,5 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
 
 #summary <- shinySummarize(rgSet)
 #shinyApp(ui=ui.methylation(summary), server = server.methylation(summary))
+
 

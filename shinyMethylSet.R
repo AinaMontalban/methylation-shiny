@@ -7,6 +7,7 @@ setClass("shinyMethylSet",
                         mQuantiles ="list",
                         betaQuantiles = "list",
                         betaMatrix = "matrix",
+                        mMatrix = "matrix",
                         methQuantiles = "list",
                         unmethQuantiles = "list",
                         cnQuantiles = "list",
@@ -27,6 +28,7 @@ setValidity("shinyMethylSet", function(object) {
     unmethQuantiles <- object@unmethQuantiles
     betaQuantiles <- object@betaQuantiles
     betaMatrix <- object@betaMatrix
+    mMatrix <- object@mMatrix
     mQuantiles <- object@mQuantiles
     cnQuantiles <- object@cnQuantiles 
     sampleNames <- object@sampleNames
@@ -140,6 +142,7 @@ shinyMethylSet <- function(sampleNames = new("character"),
                            mQuantiles = new(vector("list",5)),
                            betaQuantiles = new(vector("list",5)),
                            betaMatrix = new("matrix"),  
+                           mMatrix = new("matrix"),  
                            methQuantiles = new(vector("list",5)),
                            unmethQuantiles = new(vector("list",5)),
                            cnQuantiles = new(vector("list",5)),
@@ -156,6 +159,7 @@ shinyMethylSet <- function(sampleNames = new("character"),
                mQuantiles = mQuantiles,
                betaQuantiles = betaQuantiles,
                betaMatrix = betaMatrix,
+               mMatrix = mMatrix, 
                methQuantiles = methQuantiles,
                unmethQuantiles = unmethQuantiles,
                cnQuantiles = cnQuantiles,
@@ -222,7 +226,7 @@ setMethod("show",signature(object="shinyMethylSet"),
               cat(" Phenotype: ",nCovs, "covariates \n")
               cat(" Origin object: ", object@originObject, "\n")
               cat(" Array: ", object@array, "\n")
-              cat(" Beta Matrix: ", object@betaMatrix)
+              cat(" Beta Matrix: ", dim(object@betaMatrix))
           })
 
 setMethod("getBeta",signature(object="shinyMethylSet"),
@@ -363,4 +367,5 @@ setMethod("combine",signature(x="shinyMethylSet", y="shinyMethylSet"), function(
     c.shinyMethylSet@originObject <- "Merging"
     c.shinyMethylSet
 }
+
 

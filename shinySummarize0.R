@@ -127,6 +127,7 @@ setMethod("shinySummarize", signature(object = "RGChannelSet"),
                                         mQuantiles  = mQuantiles,
                                         betaQuantiles = betaQuantiles,
                                         betaMatrix = minfi::getBeta(object),
+                                        mMatrix = matrix(NA),
                                         methQuantiles = methQuantiles,
                                         unmethQuantiles = unmethQuantiles,
                                         cnQuantiles = cnQuantiles ,
@@ -198,6 +199,8 @@ setMethod("shinySummarize", signature(object = "GenomicRatioSet"),
                                        mQuantiles  = mQuantiles,
                                        betaQuantiles = betaQuantiles,
                                        betaMatrix = minfi::getBeta(object),
+                                       mMatrix = minfi::getBeta(object),
+                                       
                                        methQuantiles = list(NULL),
                                        unmethQuantiles = list(NULL),
                                        cnQuantiles = cnQuantiles,
@@ -210,3 +213,4 @@ setMethod("shinySummarize", signature(object = "GenomicRatioSet"),
                                        )
               object
           })
+

@@ -14,9 +14,10 @@ require(ggplot2)
 require(shiny)
 require(base)
 require(reshape2)
+require(plotly)
 # Set the directories where the data is stored
 # Full path of the folder
-full_path <- "/mnt/ElRaid/amontalban/PROJECTS/metylation/subset"
+full_path <- "/mnt/ElRaid/amontalban/PROJECTS/methylation/subset"
 # Path of the IDAT files
 directory.IDAT<- file.path(full_path, "tmp", fsep = "/")
 # Path of the samplesheet file
@@ -70,16 +71,24 @@ source(paste0(directory, "/", "plotPropFailedProbes.R"))
 
 
 
-
+### Example minfi - bioconductor
 baseDir <- system.file("extdata", package="minfiData")
 targetsEx <- read.metharray.sheet(baseDir)
 RGSetEx <- read.metharray.exp(targets = targetsEx)
 summary1 <- shinySummarize(RGSetEx)
 targetsEx$ID <- paste(targetsEx$Slide,targetsEx$Array, targetsEx$Sample_Name,targetsEx$Sample_Group, sep=".")
-summary <- shinySummarize(rgSet)
 mSetSq <- preprocessQuantile(RGSetEx)
 summary1.norm <- shinySummarize(mSetSq)
 
-shinyApp(ui=ui.methylation(summary1), server = server.methylation(summary1))
-shinyApp(ui=ui.methylation(summary1,summary1.norm ), server = server.methylation(summary1, summary1.norm))
+
+### Real data
+summary <- shinySummarize(rgSet)
+GRSet.norm <- preprocessNoob(rgSet)
+mSetSq <- ratioConvert(GRSet.norm)
+# Convert to GenomicRatioSet object.
+mSetSq <- mapToGenome(mSetSq)
+    summary.norm <- shinySummarize(mSetSq)
+shinyApp(ui=ui.methylation(summary), server = server.methylation(summary))
+shinyApp(ui=ui.methylation(summary,summary.norm ), server = server.methylation(summary, summary.norm))
   
+
