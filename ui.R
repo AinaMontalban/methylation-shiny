@@ -39,45 +39,10 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
       navbarPage(
         ###########################  ---  Home   ------------ 
         tabPanel("Home"),
-        tabPanel("Parameters",
+        tabPanel("Experiment",
+                 tableOutput("SampleSheetSubset"),
+                 verbatimTextOutput("SampleSheetInfo"),
                  
-                 HTML("<p><span style=\"color:#336666;font-size:16px\">
-			      Color choice:</span></p>"),
-                 
-                 selectInput("colorChoice", "Color set:",
-                             list("Pault","Rainbow","Set1","Set2","Set3",
-                                  "Paired","Dark2","Accent"),
-                             multiple=FALSE, 
-                             selected="Set1"),
-                 HTML("<p><span style=\"color:#336666;font-size:16px\">
-			      Quality control exploration:</span></p>"),
-                 
-                 # radioButtons("mOrBeta", "Methylation measure:",
-                 #             list("Beta-value","M-value"),
-                 #            selected="M-value"),
-                 
-                 
-                 if ("plate" %in% colnames(covariates)){
-                   choices <- colnames(covariates)
-                   selectInput("phenotype", "Choose a phenotype:",
-                               choices,
-                               multiple=FALSE, 
-                               selected ="plate")
-                 } else {
-                   choices <- colnames(covariates)
-                   selectInput("phenotype", "Choose a phenotype:",
-                               choices,
-                               multiple=FALSE)},          	
-                 
-                 checkboxInput("mean","Average density by phenotypic level"),
-                 selectInput("lty", "Density line type (lty):",
-                             list(1,2,3,4,5,6),
-                             multiple=FALSE, 
-                             selected=1),
-                 selectInput("lwd", "Density line width (lwd):",
-                             list(0.5,1,1.5,2,3,4,5,6,7,8,9,10),
-                             multiple=FALSE, 
-                             selected=1)	
         ),
         tabPanel("Samples", 
                  verticalLayout(
@@ -87,6 +52,43 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
         ###########################  ---  Quality control --- 
         tabPanel("Methylation Measures",
                  sidebarPanel(
+                   HTML("<p><span style=\"color:#336666;font-size:16px\">
+			      Color choice:</span></p>"),
+                   
+                   selectInput("colorChoice", "Color set:",
+                               list("Pault","Rainbow","Set1","Set2","Set3",
+                                    "Paired","Dark2","Accent"),
+                               multiple=FALSE, 
+                               selected="Set1"),
+                   HTML("<p><span style=\"color:#336666;font-size:16px\">
+			      Quality control exploration:</span></p>"),
+                   
+                   # radioButtons("mOrBeta", "Methylation measure:",
+                   #             list("Beta-value","M-value"),
+                   #            selected="M-value"),
+                   
+                   
+                   if ("plate" %in% colnames(covariates)){
+                     choices <- colnames(covariates)
+                     selectInput("phenotype", "Choose a phenotype:",
+                                 choices,
+                                 multiple=FALSE, 
+                                 selected ="plate")
+                   } else {
+                     choices <- colnames(covariates)
+                     selectInput("phenotype", "Choose a phenotype:",
+                                 choices,
+                                 multiple=FALSE)},          	
+                   
+                   checkboxInput("mean","Average density by phenotypic level"),
+                   selectInput("lty", "Density line type (lty):",
+                               list(1,2,3,4,5,6),
+                               multiple=FALSE, 
+                               selected=1),
+                   selectInput("lwd", "Density line width (lwd):",
+                               list(0.5,1,1.5,2,3,4,5,6,7,8,9,10),
+                               multiple=FALSE, 
+                               selected=1),
                    radioButtons("mOrBeta", "Methylation measure:",
                                 list("Beta-value","M-value"),
                                 selected="M-value"),

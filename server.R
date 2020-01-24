@@ -365,11 +365,29 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     )
     
     output$beanPlot <-renderPlot({
-      #arrName <- targets$Array
-      #arrName <- substr(colnames(subset_bvals), 14, 19)
-      x <- melt(subset_bvals, varnames=c("cpg","array"))
-      head(x, 6)
-      ggplot(x, aes(x=array, y=value)) + geom_violin()
-      
-    })
+      # Function to subset the CpGs
+      if (input$mOrBeta=="Beta-value"){
+      numberOfCpGs = 10000
+      pal = brewer.pal(8, "Dark2")
+       idx_cg <- sample(nrow(bMatrix),numberOfCpGs)
+       b_subset <- as.matrix(bMatrix[idx_cg, ])
+      x <- melt(b_subset, varnames=c("cpg","sample"))
+      o <- order(colnames(bMatrix))
+      #ggplot(x, aes(x=sample, y=value)) + geom_violin() + coord_flip()
+      minfi::densityBeanPlot(bMatrix, sampGroups = covariates$Sample_Group, sampNames = covariates$Sample_Name)
+      }
+    }
+    )
+    
+    
+    output$SampleSheetSubset <- renderTable(
+      covariates[, 1:10]    
+      )
+
+    output$SampleSheetInfo <- renderPrint({
+      print(paste("The experiment contains", length(covariates$Sample_Name), "samples.", sep = " "))
+      print(paste("The experiment contains", length(unique(covariates$Sample_Group)), "groups", sep = " "))
+    }
+    )
+    
   }}

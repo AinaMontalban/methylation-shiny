@@ -60,7 +60,7 @@ sampleNames(rgSet) <- targets$ID
 rgSet
 
 
-directory <- "~/Documents/shiny01/shinyHome01"
+directory <- "~/Documents/methylation-shiny/methylation-shiny"
 directory <- "/home/aina/Internship/methylation-shiny"
 source(paste0(directory, "/", "ui.R"))
 source(paste0(directory, "/", "server.R"))
@@ -91,7 +91,7 @@ GRSet.norm <- preprocessNoob(rgSet)
 mSetSq <- ratioConvert(GRSet.norm)
 # Convert to GenomicRatioSet object.
 mSetSq <- mapToGenome(mSetSq)
-    summary.norm <- shinySummarize(mSetSq)
+summary.norm <- shinySummarize(mSetSq)
 shinyApp(ui=ui.methylation(summary), server = server.methylation(summary))
 shinyApp(ui=ui.methylation(summary,summary.norm ), server = server.methylation(summary, summary.norm))
   
