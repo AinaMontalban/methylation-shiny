@@ -23,7 +23,11 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     plateNames      <- substr(sampleNames,21,30)
     groupNames      <- substr(sampleNames, 32, 43)
     controlNames    <-  names(greenControls)
-    targets <- shinyMethylSet1@phenotype
+
+    RGSET           <- shinyMethylSet1@RGSET
+    
+    
+    
     
     
     method <- shinyMethylSet1@originObject
@@ -250,8 +254,8 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       },
       content = function(file) {
         png(file)
-        minfi::densityPlot(bMatrix, sampGroups = targets$Sample_Group)
-        minfi::densityPlot(bMatrix2, sampGroups = targets$Sample_Group)
+        minfi::densityPlot(bMatrix, sampGroups = covariates$Sample_Group)
+        minfi::densityPlot(bMatrix2, sampGroups = covariates$Sample_Group)
         dev.off()
       }
     )  
@@ -337,7 +341,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       pval_means <- colMeans(detP)
       df_pval_means <- as.data.frame(pval_means)
       colnames(df_pval_means) <- "pvals"
-      ggplot(df_pval_means, aes(x=rownames(df_pval_means), y=pvals, fill=pal[factor(targets$Sample_Name)])) +
+      ggplot(df_pval_means, aes(x=rownames(df_pval_means), y=pvals, fill=pal[factor(covariates$Sample_Name)])) +
         geom_col(show.legend = FALSE) +
         scale_y_continuous(limits=c(0,0.08)) + 
         geom_hline(yintercept = 0.05, color="red") + 
@@ -346,7 +350,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     })
     
     output$probesFailedPlot <- renderPlot({
-      plotFailedPropProbes(detP = detP, targets$Sample_Name)
+      plotFailedPropProbes(detP = detP, covariates$Sample_Name)
     })
     
     output$reportDownload <- downloadHandler(
@@ -356,10 +360,10 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       content = function(file){
         pdf(file)
         par(mfrow=c(2,2))
-        minfi::densityPlot(bMatrix, sampGroups = targets$Sample_Group)
-        minfi::densityPlot(bMatrix2, sampGroups = targets$Sample_Group)   
-        minfi::densityPlot(mMatrix2, sampGroups = targets$Sample_Group)   
-        plotFailedPropProbes(detP = detP, targets$Sample_Name)
+        minfi::densityPlot(bMatrix, sampGroups = covariates$Sample_Group)
+        minfi::densityPlot(bMatrix2, sampGroups = covariates$Sample_Group)   
+        minfi::densityPlot(mMatrix2, sampGroups = covariates$Sample_Group)   
+        plotFailedPropProbes(detP = detP, covariates$Sample_Name)
         dev.off()
       }
     )
@@ -389,5 +393,40 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       print(paste("The experiment contains", length(unique(covariates$Sample_Group)), "groups", sep = " "))
     }
     )
+    
+    
+    ntext <- eventReactive(input$normButton, {
+      norm_method <- input$normID
+      if (norm_method == "Quantile"){
+        mSetSq <- preprocessQuantile(RGSET)
+      } else if (norm_method == "Funnorm") {
+        mSetSq <- preprocessFunnorm(RGSET)
+      } else if (norm_method == "SWAN") {
+        mSetSq <- preprocessSWAN(RGSET)
+      } else if (norm_method == "ssNoob") {
+        mSetSq <- preprocessNoob(RGSET, dyeMethod = "single")
+        # Convert to RatioSet object.
+        mSetSq <- ratioConvert(mSetSq)
+        # Convert to GenomicRatioSet object.
+        mSetSq <- mapToGenome(mSetSq)
+      } else if (norm_method == "Illumina") {
+        mSetSq <- preprocessIllumina(RGSET, bg.correct = TRUE, normalize = "controls",
+                                     reference = 1)
+        # Convert to RatioSet object.
+        mSetSq <- ratioConvert(mSetSq)
+        # Convert to GenomicRatioSet object.
+        mSetSq <- mapToGenome(mSetSq)
+      } else {
+        stop("[ERROR] normalization method not correctly specified.")
+      }
+      prov <- shinySummarizeNorm(mSetSq)
+      #print(paste("shinyMethylSet created!"))
+    })
+    
+    
+    
+    output$nText <- renderTable({
+      ntext()@phenotype
+    })
     
   }}

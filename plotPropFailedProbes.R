@@ -13,7 +13,7 @@ failed_proportion <- apply(detP, 2, function(x) {
 })
 
 names(failed_proportion) <- sampleNames
-barplot(failed_proportion, col=pal[factor(sampleNames)], 
+barplot(failed_proportion, col="darkgrey", 
         ylim = c(0, 0.12),
         las=2, 
         cex.names=0.8, ylab="Proportion of failed probes")

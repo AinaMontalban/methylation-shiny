@@ -21,11 +21,12 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
   arrayNames      <- substr(sampleNames,14,19)
   plateNames      <- substr(sampleNames,21,30)
   groupNames      <- substr(sampleNames, 32, 43)
-  targets <- shinyMethylSet1@phenotype
+  RGSET           <- shinyMethylSet1@RGSET
   controlNames    <- names(greenControls)
   slides <- unique(slideNames)
   method <- shinyMethylSet1@originObject
   sampleColors <<- as.numeric(as.factor(plateNames))
+  RGSET           <- shinyMethylSet1@RGSET
   
   ## In the case covariates is empty:
   if (ncol(covariates)==0){
@@ -94,8 +95,12 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                                 selected="M-value"),
                    selectInput("probeType", "Choose a probe type for the density curves:", 
                                choices = c("I Green","I Red","II","X","Y"),
-                               selected="I Green")
+                               selected="I Green"),
+                   selectInput("normID", "Choose Normalization method:", choices = c("Illumina", "SWAN", "Quantile", "ssNoob", "Funnorm", selected = "ssNoob")),
+                   actionButton("normButton", "Normalize"),
                  ),
+                 mainPanel(
+                 tableOutput("nText"),
                  ## Densities plot:
                  HTML('<table border=0 width="100%"><tr bgcolor="#f5f5f5"><td>'),
                  HTML('</td><td>'),
@@ -103,6 +108,8 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                  HTML('</td></tr></table>'),
                  plotOutput("rawDensities", click="click_action"),
                  verbatimTextOutput("click_info"),
+
+                 
                  conditionalPanel(condition= "!is.null(shinyMethylSet2)",
                                   HTML("<p><span style=\"color:#336666;font-size:16px\">
 			      Normalized data:</span></p>"),
@@ -118,7 +125,7 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                  #verbatimTextOutput(outputId = "cumulativeListPrint"),
                  #downloadLink("selectedSamples","selectedSamples.csv")
                  
-        ),
+        )),
         tabPanel("Control Type",
                  selectInput("controlType", "Choose a control type:", 
                              choices = controlNames,selected=controlNames[1]),

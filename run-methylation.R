@@ -58,7 +58,6 @@ setMethod("shinySummarizeNorm", signature(object = "GenomicRatioSet"),
             pca <- prcomp(t(autMatrix[o,]))
             pca <- list(scores = pca$x, percs = (pca$sdev^2)/(sum(pca$sdev^2))*100)
             names(pca$percs) <- colnames(object)
-            
             object <- shinyMethylSet(sampleNames = colnames(object),
                                      phenotype   = as.data.frame(minfi::pData(object)),
                                      mQuantiles  = mQuantiles,
@@ -195,16 +194,17 @@ setMethod("shinySummarizepr", signature(object = "RGChannelSet"),
               names(pca$percs) <- colnames(object)
 
               
-              cat("[shinySummarize] Normalizing with ssNoob \n")
+              #cat("[shinySummarize] Normalizing with ssNoob \n")
               ## To compute the normalization:              
-              MSet.noob <- preprocessNoob(object)
-              mSetSq <- ratioConvert(GRSet.norm)
+              #MSet.noob <- preprocessNoob(object)
+              #mSetSq <- ratioConvert(GRSet.norm)
               # Convert to GenomicRatioSet object.
-              cat("[shinySummarize] --------> Convert to GenomicRatioSet object. \n")
-              mSetSq <- mapToGenome(mSetSq)
+              #cat("[shinySummarize] --------> Convert to GenomicRatioSet object. \n")
+              #mSetSq <- mapToGenome(mSetSq)
               #summary.norm <- shinySummarizeNorm(mSetSq)              
               
-              
+              RGSET <- object
+                
               object <-  shinyMethylSet(sampleNames = colnames(object),
                                         phenotype   = as.data.frame(minfi::pData(object)),
                                         mQuantiles  = mQuantiles,
@@ -219,7 +219,8 @@ setMethod("shinySummarizepr", signature(object = "RGChannelSet"),
                                         pca = pca,
                                         detP = detP,
                                         originObject = "RGChannelSet",
-                                        array = object@annotation[["array"]]
+                                        array = object@annotation[["array"]],
+                                        RGSET = RGSET
                                         )
               object
           })

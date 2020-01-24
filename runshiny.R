@@ -69,6 +69,7 @@ source(paste0(directory, "/", "shinySummarize0.R"))
 source(paste0(directory, "/", "plotDensities.R"))
 source(paste0(directory, "/", "plotPCA.R"))
 source(paste0(directory, "/", "plotPropFailedProbes.R"))
+source(paste0(directory, "/", "run-methylation.R"))
 
 
 
@@ -77,10 +78,13 @@ baseDir <- system.file("extdata", package="minfiData")
 targetsEx <- read.metharray.sheet(baseDir)
 RGSetEx <- read.metharray.exp(targets = targetsEx)
 summary1 <- shinySummarize(RGSetEx)
+summary2 <- shinySummarizepr(RGSetEx)
+
 targetsEx$ID <- paste(targetsEx$Slide,targetsEx$Array, targetsEx$Sample_Name,targetsEx$Sample_Group, sep=".")
 mSetSq <- preprocessQuantile(RGSetEx)
 summary1.norm <- shinySummarize(mSetSq)
 shinyApp(ui=ui.methylation(summary1), server = server.methylation(summary1))
+shinyApp(ui=ui.methylation(summary2), server = server.methylation(summary2))
 shinyApp(ui=ui.methylation(summary1,summary1.norm ), server = server.methylation(summary1, summary1.norm))
 
 

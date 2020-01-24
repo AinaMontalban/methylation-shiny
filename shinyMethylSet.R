@@ -16,7 +16,8 @@ setClass("shinyMethylSet",
                         pca = "list",
                         detP = "matrix",
                         originObject = "character",
-                        array = "character"
+                        array = "character",
+                        RGSET = "RGChannelSet"
                         )
          )
 
@@ -151,7 +152,8 @@ shinyMethylSet <- function(sampleNames = new("character"),
                            pca = new("list"),
                            detP = new("matrix"),
                            originObject = new("character"),
-                           array = new("character")
+                           array = new("character"),
+                           RGSET = new("RGChannelSet")
                            ) {
     set <- new("shinyMethylSet", 
                sampleNames = sampleNames,
@@ -168,7 +170,8 @@ shinyMethylSet <- function(sampleNames = new("character"),
                pca = pca,
                detP = detP,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
                originObject = originObject, 
-               array = array
+               array = array,
+               RGSET = RGSET
                )
     set
 }
