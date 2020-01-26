@@ -82,7 +82,7 @@ summary2 <- shinySummarizepr(RGSetEx)
 
 targetsEx$ID <- paste(targetsEx$Slide,targetsEx$Array, targetsEx$Sample_Name,targetsEx$Sample_Group, sep=".")
 mSetSq <- preprocessQuantile(RGSetEx)
-summary1.norm <- shinySummarize(mSetSq)
+summary1.norm <- shinySummarizeNorm(mSetSq)
 shinyApp(ui=ui.methylation(summary1), server = server.methylation(summary1))
 shinyApp(ui=ui.methylation(summary2), server = server.methylation(summary2))
 shinyApp(ui=ui.methylation(summary1,summary1.norm ), server = server.methylation(summary1, summary1.norm))
@@ -99,4 +99,4 @@ summary.norm <- shinySummarize(mSetSq)
 shinyApp(ui=ui.methylation(summary), server = server.methylation(summary))
 shinyApp(ui=ui.methylation(summary,summary.norm ), server = server.methylation(summary, summary.norm))
   
-
+cat(paste0(directory, "/", "server.R"))

@@ -6,11 +6,6 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     unmethQuantiles <-  getUnmeth(shinyMethylSet1)
     cnQuantiles     <-  getCN(shinyMethylSet1)
     bMatrix <- shinyMethylSet1@betaMatrix
-    if (!is.null(shinyMethylSet2)){
-      bMatrix2 <- shinyMethylSet2@betaMatrix
-      mMatrix2 <- shinyMethylSet2@mMatrix
-      
-    }
     #mMatrix <- shinyMethylSet1@mMatrix
     greenControls   <-  getGreenControls(shinyMethylSet1)
     redControls     <-  getRedControls(shinyMethylSet1)
@@ -18,20 +13,16 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     pca             <-  getPCA(shinyMethylSet1)$scores
     detP            <- shinyMethylSet1@detP
     sampleNames     <-  sampleNames(shinyMethylSet1)
-    slideNames      <- substr(sampleNames,1,10)
-    arrayNames      <- substr(sampleNames,14,19)
-    plateNames      <- substr(sampleNames,21,30)
-    groupNames      <- substr(sampleNames, 32, 43)
+    slideNames      <- shinyMethylSet1@phenotype$Slide
+    arrayNames      <- shinyMethylSet1@phenotype$Array
+    plateNames      <- shinyMethylSet1@phenotype$Sample_Plate
+    groupNames      <- shinyMethylSet1@phenotype$Sample_Group
     controlNames    <-  names(greenControls)
-
-    RGSET           <- shinyMethylSet1@RGSET
-    
-    
-    
+    targets <- shinyMethylSet1@phenotype
     
     
     method <- shinyMethylSet1@originObject
-    
+    RGSET <- shinyMethylSet1@RGSET
     
     ## In the case covariates is empty:
     if (ncol(covariates)==0){
@@ -112,18 +103,14 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     })
     
     returnDensityMatrixNorm <- reactive({
-      if (is.null(shinyMethylSet2)){
-        return(NULL)
-      } else {
         index <- match(input$probeType,
                        c("I Green","I Red","II","X","Y"))
-      }
       if (input$mOrBeta=="Beta-value"){
         bw <- 1
-        quantiles <- shinyMethylSet2@betaQuantiles[[index]]
+        quantiles <- norm()@betaQuantiles[[index]]
       } else {
         bw <- 1
-        quantiles <- shinyMethylSet2@mQuantiles[[index]]
+        quantiles <- norm()@mQuantiles[[index]]
       }
       matrix <- apply(quantiles, 2, function(x){
         d <- density(x, bw = bw, n =512)
@@ -181,22 +168,19 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
                       from = from, to = to, bw = bw)
         
       }})
-    
-    
-    ## Density plot for normalized data:
+
+    # Density plot for normalized data:
     output$normDensities <- renderPlot({
-      if (is.null(shinyMethylSet2)){
-        return(NULL)
-      }	else {
-        
+
+
         set.palette(n=8, name=setColor())
         colors <- sampleColors()
         lwd <- as.numeric(input$lwd)
         lty <- as.numeric(input$lty)
         index <- match(input$probeType,
                        c("I Green","I Red","II","X","Y"))
-        
-        ## Plot specifications                  
+
+        ## Plot specifications
         if (input$mOrBeta=="Beta-value"){
           xlim <- c(-0.2,1.2)
           if (input$probeType == "II"){
@@ -208,29 +192,29 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
           main = "Normalized data (Beta values)"
           xlab = "Beta-values"
           bw <- 1
-          quantiles =  shinyMethylSet2@betaQuantiles[[index]]
-          minfi::densityPlot(bMatrix2, sampGroups = groupNames)
+          #quantiles =  shinyMethylSet2@betaQuantiles[[index]]
+          minfi::densityPlot(norm()@betaMatrix, sampGroups = groupNames)
         } else {
           xlim <- c(-8,8)
           ylim <- c(0, 0.35)
           from = -10; to = 10;
-          main = "Normalized data (M values)" 
+          main = "Normalized data (M values)"
           xlab = "M-values"
-          quantiles =  shinyMethylSet2@mQuantiles[[index]]
+          quantiles =  norm()@mQuantiles[[index]]
           bw <- 1
-          
-          
+
+
           densitiesPlot(matrix.x = returnDensityMatrixNorm()[[1]],
                         matrix.y = returnDensityMatrixNorm()[[2]],
                         quantiles = quantiles,
                         sampleNames = sampleNames,
                         main = main, xlab = xlab,
                         xlim = xlim, ylim = ylim, col = colors,
-                        mean = input$mean, 
+                        mean = input$mean,
                         lwd = lwd, lty = lty,
                         from = from, to = to, bw=bw)}
-        
-      }})
+
+      })
     
     output$click_info <- renderPrint({
       cat("str(input$click_action):")
@@ -241,10 +225,22 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     output$betamatrixDownload <- downloadHandler(
       
       filename = function() {
-        paste("b_values", ".csv", sep = "")
+        paste("raw_bvalues", ".csv", sep = "")
       },
       content = function(file) {
-        write.csv(bMatrix2, file)
+        bMatrix <- shinyMethylSet1@betaMatrix
+        write.csv(bMatrix, file)
+      }
+    )
+    
+    output$betamatrixNormDownload <- downloadHandler(
+      
+      filename = function() {
+        paste("norm_bvalues", ".csv", sep = "")
+      },
+      content = function(file) {
+        bMatrix <- norm()@betaMatrix
+        write.csv(bMatrix, file)
       }
     )
     output$plotDownload <- downloadHandler(
@@ -254,13 +250,14 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       },
       content = function(file) {
         png(file)
-        minfi::densityPlot(bMatrix, sampGroups = covariates$Sample_Group)
-        minfi::densityPlot(bMatrix2, sampGroups = covariates$Sample_Group)
+        minfi::densityPlot(bMatrix, sampGroups = targets$Sample_Group)
+        minfi::densityPlot(bMatrix2, sampGroups = targets$Sample_Group)
         dev.off()
       }
     )  
     
     output$controlTypePlotGreen <- renderPlot({
+      cnt <- input$controlType
       
       if (input$controlType %in% c("BISULFITE CONVERSION I", "BISULFITE CONVERSION II", "HYBRIDIZATION", "SPECIFICITY I", 
                                    "SPECIFICITY II", "TARGET REMOVAL")){
@@ -269,10 +266,20 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
         threshold <- 5 # you can increase the threshold
       } else {threshold <- 0}
       
-      cnt <- input$controlType
-      log2_subset_GC <- log2(greenControls[[cnt]])
+      if (length(sampleNames) >= 50){
+          arr <- input$arrayID
+          column_names <- colnames(greenControls[[cnt]])
+          array_names <- substr(column_names, 12, 17)
+          colnames(greenControls[[cnt]]) <- array_names
+          gC <- as.data.frame(greenControls[[cnt]])[arr]
+      }  else {
+            gC <- as.data.frame(greenControls[[cnt]])
+          }
+        
+      
+      log2_subset_GC <- log2(as.matrix(gC))
       df_subset_GC <- melt(log2_subset_GC)
-      ggplot(data=as.data.frame(df_subset_GC), aes(x=Var2, y=value)) + 
+      ggplot(data=(df_subset_GC), aes(x=Var2, y=value)) + 
         geom_point(color="darkgreen", size=1.5) + scale_y_continuous(limits = c(-1, 20)) + 
         theme(axis.text.x = element_text(hjust = 1, angle=45)) +
         geom_hline(yintercept =threshold, linetype="dashed") + ylab("Log2 Intensity") +
@@ -341,44 +348,60 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       pval_means <- colMeans(detP)
       df_pval_means <- as.data.frame(pval_means)
       colnames(df_pval_means) <- "pvals"
-      ggplot(df_pval_means, aes(x=rownames(df_pval_means), y=pvals, fill=pal[factor(covariates$Sample_Name)])) +
-        geom_col(show.legend = FALSE) +
+      ggplot(df_pval_means, aes(x=rownames(df_pval_means), y=pvals)) +
+        geom_col(show.legend = FALSE, color="darkgrey") +
+        theme_classic() + 
         scale_y_continuous(limits=c(0,0.08)) + 
         geom_hline(yintercept = 0.05, color="red") + 
         theme(axis.text.x = element_text(hjust = 1, angle=45)) +
+        labs(y="P-values", x="")+
         geom_hline(yintercept = 0.01, color="green")
     })
     
     output$probesFailedPlot <- renderPlot({
-      plotFailedPropProbes(detP = detP, covariates$Sample_Name)
+      plotFailedPropProbes(detP = detP, targets$Sample_Name)
     })
     
-    output$reportDownload <- downloadHandler(
+    output$report <- downloadHandler(
       filename = function(){
         paste("report", ".pdf", sep = "")
       },
       content = function(file){
-        pdf(file)
-        par(mfrow=c(2,2))
-        minfi::densityPlot(bMatrix, sampGroups = covariates$Sample_Group)
-        minfi::densityPlot(bMatrix2, sampGroups = covariates$Sample_Group)   
-        minfi::densityPlot(mMatrix2, sampGroups = covariates$Sample_Group)   
-        plotFailedPropProbes(detP = detP, covariates$Sample_Name)
-        dev.off()
+        tempReport <- file.path(directory, "report.Rmd")
+        file.copy("report.Rmd", tempReport, overwrite = TRUE)
+        
+        # Set up parameters to pass to Rmd document
+        params = list()
+        # Knit the document, passing in the `params` list, and eval it in a
+        # child of the global environment (this isolates the code in the document
+        # from the code in this app).
+        rmarkdown::render(tempReport, output_file = file,
+                          
+                          envir = new.env(parent = globalenv()))
+        
+        
+        
+        # pdf(file)
+        # par(mfrow=c(2,2))
+        # minfi::densityPlot(bMatrix, sampGroups = targets$Sample_Group)
+        # minfi::densityPlot(bMatrix2, sampGroups = targets$Sample_Group)   
+        # minfi::densityPlot(mMatrix2, sampGroups = targets$Sample_Group)   
+        # plotFailedPropProbes(detP = detP, targets$Sample_Name)
+        # dev.off()
       }
     )
     
     output$beanPlot <-renderPlot({
       # Function to subset the CpGs
       if (input$mOrBeta=="Beta-value"){
-      numberOfCpGs = 10000
-      pal = brewer.pal(8, "Dark2")
-       idx_cg <- sample(nrow(bMatrix),numberOfCpGs)
-       b_subset <- as.matrix(bMatrix[idx_cg, ])
-      x <- melt(b_subset, varnames=c("cpg","sample"))
-      o <- order(colnames(bMatrix))
-      #ggplot(x, aes(x=sample, y=value)) + geom_violin() + coord_flip()
-      minfi::densityBeanPlot(bMatrix, sampGroups = covariates$Sample_Group, sampNames = covariates$Sample_Name)
+        numberOfCpGs = 10000
+        pal = brewer.pal(8, "Dark2")
+        idx_cg <- sample(nrow(bMatrix),numberOfCpGs)
+        b_subset <- as.matrix(bMatrix[idx_cg, ])
+        x <- melt(b_subset, varnames=c("cpg","sample"))
+        o <- order(colnames(bMatrix))
+        #ggplot(x, aes(x=sample, y=value)) + geom_violin() + coord_flip()
+        minfi::densityBeanPlot(bMatrix, sampGroups = covariates$Sample_Group, sampNames = covariates$Sample_Name)
       }
     }
     )
@@ -386,16 +409,16 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     
     output$SampleSheetSubset <- renderTable(
       covariates[, 1:10]    
-      )
-
-    output$SampleSheetInfo <- renderPrint({
+    )
+    
+    output$SampleSheetInfo <- renderText({
       print(paste("The experiment contains", length(covariates$Sample_Name), "samples.", sep = " "))
       print(paste("The experiment contains", length(unique(covariates$Sample_Group)), "groups", sep = " "))
     }
     )
     
     
-    ntext <- eventReactive(input$normButton, {
+    norm <- eventReactive(input$normButton, {
       norm_method <- input$normID
       if (norm_method == "Quantile"){
         mSetSq <- preprocessQuantile(RGSET)
@@ -425,8 +448,5 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     
     
     
-    output$nText <- renderTable({
-      ntext()@phenotype
-    })
-    
+  
   }}

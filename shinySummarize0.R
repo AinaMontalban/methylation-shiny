@@ -113,9 +113,13 @@ setMethod("shinySummarize", signature(object = "RGChannelSet"),
               ## To compute the principal components:
               numPositions = 20000
               autMatrix <- betaMatrix[autosomal,]
+              cat("[shinySummarize] Not helloooo order! \n")
+              
               rm(betaMatrix)
               gc(verbose=FALSE)
               o <- order(-rowVars(autMatrix))[1:numPositions]
+              cat("[shinySummarize] Not this order! \n")
+              
               pca <- prcomp(t(autMatrix[o,]))
               pca = list(scores = pca$x, percs = (pca$sdev^2)/(sum(pca$sdev^2))*100)
               names(pca$percs) <- colnames(object)
@@ -183,13 +187,17 @@ setMethod("shinySummarize", signature(object = "GenomicRatioSet"),
                   cnQuantiles[[i]] <- t(colQuantiles(cnMatrix[probe.indices[[i]],], probs=probs, na.rm=TRUE))
                   names(betaQuantiles[[i]]) <- names(mQuantiles[[i]]) <- names(cnQuantiles[[i]]) <- colnames(object)  
               }
+              cat("[shinySummarize] Not helloooo order! \n")
               
               cat("[shinySummarize] Computing principal components \n")
               ## To compute the principal components:
+              
               numPositions = 20000
               autMatrix <- betaMatrix[autosomal,]
               rm(betaMatrix)
+              
               o <- order(-rowVars(autMatrix))[1:numPositions]
+              
               pca <- prcomp(t(autMatrix[o,]))
               pca <- list(scores = pca$x, percs = (pca$sdev^2)/(sum(pca$sdev^2))*100)
               names(pca$percs) <- colnames(object)

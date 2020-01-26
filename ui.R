@@ -18,7 +18,7 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
   detP            <- shinyMethylSet1@detP 
   sampleNames     <- sampleNames(shinyMethylSet1)
   slideNames      <- substr(sampleNames,1,10)
-  arrayNames      <- substr(sampleNames,14,19)
+  arrayNames      <- shinyMethylSet1@phenotype$Array
   plateNames      <- substr(sampleNames,21,30)
   groupNames      <- substr(sampleNames, 32, 43)
   RGSET           <- shinyMethylSet1@RGSET
@@ -34,26 +34,69 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
     rownames(covariates) <- sampleNames
     covariates <<- covariates
   }
-  fluidPage(
+  fluidPage(tags$head(includeCSS("/home/aina/Internship/methylation-shiny/www/united.min.css")),
+            tags$head(
+              tags$style(HTML("
+      @import url('//fonts.googleapis.com/css?family=Lobster|Cabin:400,700');
+    "))
+            ),
+
+            headerPanel(
+              h1("Shiny Methyl ",
+                 style = "font-family: 'Sans-serif', bold;
+        font-weight: 500; line-height: 1.1;
+        color:   #d66958;")),
     ###########################  ---  Header ------------ ##############
     mainPanel(
       navbarPage(
         ###########################  ---  Home   ------------ 
-        tabPanel("Home"),
-        tabPanel("Experiment",
+       title=p(strong("Quality control")),
+       tabPanel("Home", 
+                h3("Quality control"), 
+                br(),
+                p(strong("Summary")),
+                p(strong("Tab 1: Experiment")),
+                p(strong("Tab 2: Samples")),
+                p(strong("Tab 3: Methylation Measures")),
+                p(strong("Tab 4: Control Type")),
+                p(strong("Tab 5: PCA")),
+                p(strong("Tab 6: Report Generator")),
+                br(),
+                br(),
+                br(),
+                br(),
+                
+                
+                HTML("
+                       <div id=label>I'm a Box</div>")
+                
+                ),
+       tabPanel("Experiment",
                  tableOutput("SampleSheetSubset"),
-                 verbatimTextOutput("SampleSheetInfo"),
+                 textOutput("SampleSheetInfo"),
                  
         ),
         tabPanel("Samples", 
                  verticalLayout(
+                   HTML("
+                       <div id=label> · Examine mean detection p-values across all samples to identify any failed 
+samples. </div>"),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
                    plotOutput("barplotPval"),
+                   HTML("
+                       <div id=label> · Examine the proportion of failed probes. </div>"), 
+                   br(),
+                   br(),
+                   br(),
                    plotOutput("probesFailedPlot")
                  )),
         ###########################  ---  Quality control --- 
         tabPanel("Methylation Measures",
                  sidebarPanel(
-                   HTML("<p><span style=\"color:#336666;font-size:16px\">
+                   HTML("<p><span style=\"color:#d66958;font-size:16px\">
 			      Color choice:</span></p>"),
                    
                    selectInput("colorChoice", "Color set:",
@@ -61,7 +104,7 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                                     "Paired","Dark2","Accent"),
                                multiple=FALSE, 
                                selected="Set1"),
-                   HTML("<p><span style=\"color:#336666;font-size:16px\">
+                   HTML("<p><span style=\"color:#d66958;font-size:16px\">
 			      Quality control exploration:</span></p>"),
                    
                    # radioButtons("mOrBeta", "Methylation measure:",
@@ -92,15 +135,25 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                                selected=1),
                    radioButtons("mOrBeta", "Methylation measure:",
                                 list("Beta-value","M-value"),
-                                selected="M-value"),
+                                selected="Beta-value"),
                    selectInput("probeType", "Choose a probe type for the density curves:", 
                                choices = c("I Green","I Red","II","X","Y"),
                                selected="I Green"),
-                   selectInput("normID", "Choose Normalization method:", choices = c("Illumina", "SWAN", "Quantile", "ssNoob", "Funnorm", selected = "ssNoob")),
-                   actionButton("normButton", "Normalize"),
+                   hr(),
+                   hr(),
+                   hr(),
+                   HTML("<p><span style=\"color:#d66958;font-size:16px\">
+			      Download beta-values:</span></p>"),
+                   downloadLink("betamatrixDownload", "raw_bvalues.csv"),
+                   br(),
+                   br(),
+                   HTML("*Only "),
+                   br(), 
+                   downloadLink("betamatrixNormDownload", "norm_bvalues.csv"),
                  ),
                  mainPanel(
-                 tableOutput("nText"),
+                   selectInput("normID", "Choose Normalization method:", choices = c("Illumina", "SWAN", "Quantile", "ssNoob", "Funnorm", selected = "ssNoob")),
+                   actionButton("normButton", "Normalize"),
                  ## Densities plot:
                  HTML('<table border=0 width="100%"><tr bgcolor="#f5f5f5"><td>'),
                  HTML('</td><td>'),
@@ -109,28 +162,19 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                  plotOutput("rawDensities", click="click_action"),
                  verbatimTextOutput("click_info"),
 
-                 
-                 conditionalPanel(condition= "!is.null(shinyMethylSet2)",
-                                  HTML("<p><span style=\"color:#336666;font-size:16px\">
-			      Normalized data:</span></p>"),
-                                  plotOutput("normDensities",
-                                             click = "normHover")),
-                 plotOutput("beanPlot"),
-                 HTML("<p><span style=\"color:#336666;font-size:16px\">
-			      Download beta-values:</span></p>"),
-                 downloadLink("betamatrixDownload", "b_values.csv"),
-                 HTML("<p><span style=\"color:#336666;font-size:16px\">
-			      Download report:</span></p>"),
-                 downloadLink("plotDownload", "qcM.png")
+                 plotOutput("normDensities"),
+                 plotOutput("beanPlot")
+                
                  #verbatimTextOutput(outputId = "cumulativeListPrint"),
                  #downloadLink("selectedSamples","selectedSamples.csv")
                  
         )),
         tabPanel("Control Type",
+                 HTML("<p><span style=\"color:#d66958;font-size:16px\">
+			      Step control</span></p>"),
                  selectInput("controlType", "Choose a control type:", 
                              choices = controlNames,selected=controlNames[1]),
-                 HTML("<p><span style=\"color:#336666;font-size:16px\">
-			      Step control</span></p>"),
+                 conditionalPanel(condition="length(sampleNames) >= 50", selectInput("arrayID", "Select array:", arrayNames)),
                  verticalLayout(
                    plotOutput("controlTypePlotGreen"),
                    plotOutput("controlTypePlotRed"))
@@ -176,18 +220,12 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                  verbatimTextOutput(outputId = "modelPrint")
         ),
         ######################   ----   Type I/TypeII Bias --------  
-        tabPanel("Probe Type Diff",
-                 selectInput("selectedSampleBias", "Sample:",
-                             sampleNames,
-                             multiple= FALSE),
-                 plotOutput("probeBiasPlot"),
-                 conditionalPanel(condition= "!is.null(shinyMethylSet2)", plotOutput("probeBiasPlotNorm"))
-        ),
-        tabPanel("Downloads", 
+       
+        tabPanel("Report", 
                  checkboxGroupInput("selectedPlots", "Select:", choices = c("Raw Beta-values", 
                                                                             "Raw m-values", "Normalized beta-values", "Failed Probes", "PCA")),
-                 downloadButton("reportDownload", label = "Download"))
-      )
+                 downloadButton("report", "Generate report")
+      ))
     )
   )
   
