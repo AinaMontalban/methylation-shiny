@@ -11,6 +11,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     redControls     <-  getRedControls(shinyMethylSet1)
     covariates      <<- pData(shinyMethylSet1)
     pca             <-  getPCA(shinyMethylSet1)$scores
+    pca_m           <-  shinyMethylSet1@pca_m$scores
     detP            <- shinyMethylSet1@detP
     sampleNames     <-  sampleNames(shinyMethylSet1)
     slideNames      <- shinyMethylSet1@phenotype$Slide
@@ -19,8 +20,8 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     groupNames      <- shinyMethylSet1@phenotype$Sample_Group
     controlNames    <-  names(greenControls)
     targets <- shinyMethylSet1@phenotype
-    
-    
+    snps <- shinyMethylSet1@snps
+    colnames(snps) <- targets$Sample_Name
     method <- shinyMethylSet1@originObject
     RGSET <- shinyMethylSet1@RGSET
     
@@ -329,6 +330,22 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       }
     })
     
+    output$pca_mPlot <- renderPlot({
+      set.palette(n=8, name=setColor())
+      ##palette(brewer.pal(8,setColor()))
+      sampleColors()
+      if (method!="Merging"){
+        plotPCA(pca = pca_m, 
+                pc1 = input$pc1,
+                pc2 = input$pc2,
+                col = sampleColors(),
+                covariates = covariates,
+                selectedCov = input$phenotype
+        )
+      }
+    })
+    
+    
     ## Print the summary of the PCA regression: 
     output$modelPrint <- renderPrint({
       if (method!="Merging"){
@@ -447,7 +464,11 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       #print(paste("shinyMethylSet created!"))
     })
     
-    
+    output$SNPsPlot <- renderD3heatmap(
+   #   
+      d3heatmap(snps, colors = "YlOrRd")
+      #heatmap.2(snps, trace = "none", col=colorRampPalette(c("darkblue","white","darkred"))(100))
+    )
     
   
   }}

@@ -71,9 +71,12 @@ setMethod("shinySummarizeNorm", signature(object = "GenomicRatioSet"),
                                      greenControls = list(NULL),
                                      redControls = list(NULL),
                                      pca = pca,
+                                     pca_m = pca_m,
+                                     
                                      detP = matrix(NA),
                                      originObject = "GenomicRatioSet",
-                                     array = object@annotation[["array"]]
+                                     array = object@annotation[["array"]],
+                                     snps = matrix(NA)
             )
             object
           })
@@ -176,13 +179,16 @@ setMethod("shinySummarizepr", signature(object = "RGChannelSet"),
             }
             rm(methMatrix)
             rm(unmethMatrix)
-            rm(mMatrix)
+           # rm(mMatrix)
             rm(cnMatrix)
             gc(verbose=FALSE)
             
+            cat("[shinySummarize] Computing the SNPs beta values \n")
+            ## To compute the principal components:
+            snps <- getSnpBeta(object)
             
             
-            cat("[shinySummarize] Computing principal components \n")
+            cat("[shinySummarize] Computing principal components b-values \n")
             ## To compute the principal components:
             numPositions = 20000
             autMatrix <- betaMatrix[autosomal,]
@@ -192,6 +198,17 @@ setMethod("shinySummarizepr", signature(object = "RGChannelSet"),
             pca <- prcomp(t(autMatrix[o,]))
             pca = list(scores = pca$x, percs = (pca$sdev^2)/(sum(pca$sdev^2))*100)
             names(pca$percs) <- colnames(object)
+            
+            cat("[shinySummarize] Computing principal components m-values \n")
+            ## To compute the principal components:
+            numPositions = 20000
+            autMatrix <- mMatrix[autosomal,]
+            rm(mMatrix)
+            gc(verbose=FALSE)
+            o <- order(-rowVars(autMatrix))[1:numPositions]
+            pca_m <- prcomp(t(autMatrix[o,]))
+            pca_m = list(scores = pca_m$x, percs = (pca_m$sdev^2)/(sum(pca_m$sdev^2))*100)
+            names(pca_m$percs) <- colnames(object)
             
             # numPositions = 20000
             # autMatrix <- mMatrix[autosomal,]
@@ -224,10 +241,12 @@ setMethod("shinySummarizepr", signature(object = "RGChannelSet"),
                                       greenControls = greenControls ,
                                       redControls = redControls ,
                                       pca = pca,
+                                      pca_m = pca_m,
                                       detP = detP,
                                       originObject = "RGChannelSet",
                                       array = object@annotation[["array"]],
-                                      RGSET = RGSET
+                                      RGSET = RGSET,
+                                      snps = snps
             )
             object
           })

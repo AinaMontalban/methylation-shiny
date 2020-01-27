@@ -11,6 +11,7 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
   redControls     <-  getRedControls(shinyMethylSet1)
   covariates      <<- pData(shinyMethylSet1)
   pca             <-  getPCA(shinyMethylSet1)$scores
+  pca_m <- shinyMethylSet1@pca_m$scores
   detP            <- shinyMethylSet1@detP
   sampleNames     <-  sampleNames(shinyMethylSet1)
   slideNames      <- shinyMethylSet1@phenotype$Slide
@@ -19,6 +20,7 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
   groupNames      <- shinyMethylSet1@phenotype$Sample_Group
   controlNames    <-  names(greenControls)
   targets <- shinyMethylSet1@phenotype
+  snps <- shinyMethylSet1@snps
   
   
   method <- shinyMethylSet1@originObject
@@ -71,9 +73,11 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                 # 
                 ),
        tabPanel("Experiment",
-                 tableOutput("SampleSheetSubset"),
-                 textOutput("SampleSheetInfo"),
-                 
+               # splitLayout(
+                 #tableOutput("SampleSheetSubset"),
+                 d3heatmapOutput("SNPsPlot", width = "100%", height = "400px"),
+                
+                 #textOutput("SampleSheetInfo")
         ),
         tabPanel("Samples", 
                  verticalLayout(
@@ -178,8 +182,9 @@ samples. </div>"),
                    plotOutput("controlTypePlotRed"))
         ),
         tabPanel("PCA",
-                 sidebarLayout(
                    plotOutput("pcaPlot"),
+                   plotOutput("pca_mPlot"),
+                   
                    verticalLayout(
                      HTML("
 <p style=\"color:#000000;font-size:17px\">A. Choose two principal components to visualize: </span></p>
@@ -226,6 +231,6 @@ samples. </div>"),
                  downloadButton("report", "Generate report")
       ))
     )
-  )
+  
   
 }
