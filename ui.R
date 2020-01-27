@@ -1,40 +1,39 @@
 ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
   
-  betaQuantiles   <- getBeta(shinyMethylSet1) 
-  mQuantiles      <- getM(shinyMethylSet1) 
-  methQuantiles   <- getMeth(shinyMethylSet1)
-  unmethQuantiles <- getUnmeth(shinyMethylSet1)
-  cnQuantiles     <- getCN(shinyMethylSet1)
+  betaQuantiles   <-  getBeta(shinyMethylSet1)
+  mQuantiles      <-  getM(shinyMethylSet1)
+  methQuantiles   <-  getMeth(shinyMethylSet1)
+  unmethQuantiles <-  getUnmeth(shinyMethylSet1)
+  cnQuantiles     <-  getCN(shinyMethylSet1)
   bMatrix <- shinyMethylSet1@betaMatrix
-  if (!is.null(shinyMethylSet2)){
-    bMatrix2 <- shinyMethylSet2@betaMatrix
-    mMatrix2 <- shinyMethylSet2@mMatrix
-  }
   #mMatrix <- shinyMethylSet1@mMatrix
-  greenControls   <- getGreenControls(shinyMethylSet1)
-  redControls     <- getRedControls(shinyMethylSet1)
-  covariates      <<-pData(shinyMethylSet1)
-  pca             <- getPCA(shinyMethylSet1)$scores
-  detP            <- shinyMethylSet1@detP 
-  sampleNames     <- sampleNames(shinyMethylSet1)
-  slideNames      <- substr(sampleNames,1,10)
+  greenControls   <-  getGreenControls(shinyMethylSet1)
+  redControls     <-  getRedControls(shinyMethylSet1)
+  covariates      <<- pData(shinyMethylSet1)
+  pca             <-  getPCA(shinyMethylSet1)$scores
+  detP            <- shinyMethylSet1@detP
+  sampleNames     <-  sampleNames(shinyMethylSet1)
+  slideNames      <- shinyMethylSet1@phenotype$Slide
   arrayNames      <- shinyMethylSet1@phenotype$Array
-  plateNames      <- substr(sampleNames,21,30)
-  groupNames      <- substr(sampleNames, 32, 43)
-  RGSET           <- shinyMethylSet1@RGSET
-  controlNames    <- names(greenControls)
-  slides <- unique(slideNames)
-  method <- shinyMethylSet1@originObject
-  sampleColors <<- as.numeric(as.factor(plateNames))
-  RGSET           <- shinyMethylSet1@RGSET
+  plateNames      <- shinyMethylSet1@phenotype$Sample_Plate
+  groupNames      <- shinyMethylSet1@phenotype$Sample_Group
+  controlNames    <-  names(greenControls)
+  targets <- shinyMethylSet1@phenotype
   
+  
+  method <- shinyMethylSet1@originObject
+  RGSET <- shinyMethylSet1@RGSET
+  
+  slides <- unique(slideNames)
+  sampleColors <<- as.numeric(as.factor(plateNames))
+
   ## In the case covariates is empty:
   if (ncol(covariates)==0){
     covariates <- data.frame(slide = slideNames, plate = plateNames)
     rownames(covariates) <- sampleNames
     covariates <<- covariates
   }
-  fluidPage(tags$head(includeCSS("/home/aina/Internship/methylation-shiny/www/united.min.css")),
+  fluidPage(tags$head(includeCSS("/home/amontalban/Documents/methylation-shiny/www/united.min.css")),
             tags$head(
               tags$style(HTML("
       @import url('//fonts.googleapis.com/css?family=Lobster|Cabin:400,700');
@@ -67,9 +66,9 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                 br(),
                 
                 
-                HTML("
-                       <div id=label>I'm a Box</div>")
-                
+                # HTML("
+                #        <div id=label>I'm a Box</div>")
+                # 
                 ),
        tabPanel("Experiment",
                  tableOutput("SampleSheetSubset"),
@@ -134,15 +133,14 @@ samples. </div>"),
                                multiple=FALSE, 
                                selected=1),
                    radioButtons("mOrBeta", "Methylation measure:",
-                                list("Beta-value","M-value"),
-                                selected="Beta-value"),
+                                list("M-value","Beta-value"),
+                                selected="M-value"),
                    selectInput("probeType", "Choose a probe type for the density curves:", 
                                choices = c("I Green","I Red","II","X","Y"),
                                selected="I Green"),
                    hr(),
                    hr(),
-                   hr(),
-                   HTML("<p><span style=\"color:#d66958;font-size:16px\">
+                   HTML("<p><span style=\"color:#00000;font-size:16px\">
 			      Download beta-values:</span></p>"),
                    downloadLink("betamatrixDownload", "raw_bvalues.csv"),
                    br(),
@@ -152,8 +150,7 @@ samples. </div>"),
                    downloadLink("betamatrixNormDownload", "norm_bvalues.csv"),
                  ),
                  mainPanel(
-                   selectInput("normID", "Choose Normalization method:", choices = c("Illumina", "SWAN", "Quantile", "ssNoob", "Funnorm", selected = "ssNoob")),
-                   actionButton("normButton", "Normalize"),
+                   
                  ## Densities plot:
                  HTML('<table border=0 width="100%"><tr bgcolor="#f5f5f5"><td>'),
                  HTML('</td><td>'),
@@ -161,7 +158,8 @@ samples. </div>"),
                  HTML('</td></tr></table>'),
                  plotOutput("rawDensities", click="click_action"),
                  verbatimTextOutput("click_info"),
-
+                 selectInput("normID", "Choose Normalization method:", choices = c("Illumina", "SWAN", "Quantile", "ssNoob", "Funnorm", selected = "ssNoob")),
+                 actionButton("normButton", "Normalize"),
                  plotOutput("normDensities"),
                  plotOutput("beanPlot")
                 
@@ -174,14 +172,14 @@ samples. </div>"),
 			      Step control</span></p>"),
                  selectInput("controlType", "Choose a control type:", 
                              choices = controlNames,selected=controlNames[1]),
-                 conditionalPanel(condition="length(sampleNames) >= 50", selectInput("arrayID", "Select array:", arrayNames)),
+                 conditionalPanel(condition="length(sampleNames) >= 50", selectInput("arrayID", "Select array:", arrayNames, selected = arrayNames[1])),
                  verticalLayout(
                    plotOutput("controlTypePlotGreen"),
                    plotOutput("controlTypePlotRed"))
         ),
         tabPanel("PCA",
                  sidebarLayout(
-                   plotlyOutput("pcaPlot"),
+                   plotOutput("pcaPlot"),
                    verticalLayout(
                      HTML("
 <p style=\"color:#000000;font-size:17px\">A. Choose two principal components to visualize: </span></p>
@@ -224,6 +222,7 @@ samples. </div>"),
         tabPanel("Report", 
                  checkboxGroupInput("selectedPlots", "Select:", choices = c("Raw Beta-values", 
                                                                             "Raw m-values", "Normalized beta-values", "Failed Probes", "PCA")),
+                 #sliderInput("slider", "Slider", 1, 100, 50),
                  downloadButton("report", "Generate report")
       ))
     )

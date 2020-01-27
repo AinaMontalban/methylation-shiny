@@ -269,7 +269,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       if (length(sampleNames) >= 50){
           arr <- input$arrayID
           column_names <- colnames(greenControls[[cnt]])
-          array_names <- substr(column_names, 12, 17)
+          array_names <- substr(column_names, nchar(slideNames[1]) + 2, nchar(slideNames[1]) + 7)
           colnames(greenControls[[cnt]]) <- array_names
           gC <- as.data.frame(greenControls[[cnt]])[arr]
       }  else {
@@ -279,7 +279,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       
       log2_subset_GC <- log2(as.matrix(gC))
       df_subset_GC <- melt(log2_subset_GC)
-      ggplot(data=(df_subset_GC), aes(x=Var2, y=value)) + 
+      ggplot(data=as.data.frame(df_subset_GC), aes(x=Var2, y=value)) + 
         geom_point(color="darkgreen", size=1.5) + scale_y_continuous(limits = c(-1, 20)) + 
         theme(axis.text.x = element_text(hjust = 1, angle=45)) +
         geom_hline(yintercept =threshold, linetype="dashed") + ylab("Log2 Intensity") +
@@ -314,9 +314,10 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     
     #########################################################
     
-    output$pcaPlot <- renderPlotly({
+    output$pcaPlot <- renderPlot({
       set.palette(n=8, name=setColor())
       ##palette(brewer.pal(8,setColor()))
+      sampleColors()
       if (method!="Merging"){
         plotPCA(pca = pca, 
                 pc1 = input$pc1,
@@ -361,35 +362,35 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     output$probesFailedPlot <- renderPlot({
       plotFailedPropProbes(detP = detP, targets$Sample_Name)
     })
-    
-    output$report <- downloadHandler(
-      filename = function(){
-        paste("report", ".pdf", sep = "")
-      },
-      content = function(file){
-        tempReport <- file.path(directory, "report.Rmd")
-        file.copy("report.Rmd", tempReport, overwrite = TRUE)
-        
-        # Set up parameters to pass to Rmd document
-        params = list()
-        # Knit the document, passing in the `params` list, and eval it in a
-        # child of the global environment (this isolates the code in the document
-        # from the code in this app).
-        rmarkdown::render(tempReport, output_file = file,
-                          
-                          envir = new.env(parent = globalenv()))
-        
-        
-        
-        # pdf(file)
-        # par(mfrow=c(2,2))
-        # minfi::densityPlot(bMatrix, sampGroups = targets$Sample_Group)
-        # minfi::densityPlot(bMatrix2, sampGroups = targets$Sample_Group)   
-        # minfi::densityPlot(mMatrix2, sampGroups = targets$Sample_Group)   
-        # plotFailedPropProbes(detP = detP, targets$Sample_Name)
-        # dev.off()
-      }
-    )
+
+    # output$report <- downloadHandler(
+    #   filename = function(){
+    #     paste("report", ".html", sep = "")
+    #   },
+    #   content = function(file){
+    #     tempReport <- file.path(directory, "report.Rmd")
+    #     file.copy("report.Rmd", tempReport, overwrite = TRUE)
+    #     
+    #     # Set up parameters to pass to Rmd document
+    #     #params = list(betaMatrix)
+    #     # Knit the document, passing in the `params` list, and eval it in a
+    #     # child of the global environment (this isolates the code in the document
+    #     # from the code in this app).
+    #     rmarkdown::render(tempReport, output_file = file,
+    #                       
+    #                       envir = new.env(parent = globalenv()))
+    #     
+    #     
+    #     
+    #     # pdf(file)
+    #     # par(mfrow=c(2,2))
+    #     # minfi::densityPlot(bMatrix, sampGroups = targets$Sample_Group)
+    #     # minfi::densityPlot(bMatrix2, sampGroups = targets$Sample_Group)   
+    #     # minfi::densityPlot(mMatrix2, sampGroups = targets$Sample_Group)   
+    #     # plotFailedPropProbes(detP = detP, targets$Sample_Name)
+    #     # dev.off()
+    #   }
+    # )
     
     output$beanPlot <-renderPlot({
       # Function to subset the CpGs

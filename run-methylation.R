@@ -193,7 +193,14 @@ setMethod("shinySummarizepr", signature(object = "RGChannelSet"),
             pca = list(scores = pca$x, percs = (pca$sdev^2)/(sum(pca$sdev^2))*100)
             names(pca$percs) <- colnames(object)
             
-            
+            # numPositions = 20000
+            # autMatrix <- mMatrix[autosomal,]
+            # rm(mMatrix)
+            # gc(verbose=FALSE)
+            # o <- order(-rowVars(autMatrix))[1:numPositions]
+            # pca <- prcomp(t(autMatrix[o,]))
+            # pca = list(scores = pca$x, percs = (pca$sdev^2)/(sum(pca$sdev^2))*100)
+            # names(pca$percs) <- colnames(object)
             #cat("[shinySummarize] Normalizing with ssNoob \n")
             ## To compute the normalization:              
             #MSet.noob <- preprocessNoob(object)

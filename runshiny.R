@@ -60,7 +60,7 @@ sampleNames(rgSet) <- targets$ID
 rgSet
 
 
-directory <- "~/Documents/methylation-shiny/methylation-shiny"
+directory <- "~/Documents/methylation-shiny"
 directory <- "/home/aina/Internship/methylation-shiny"
 source(paste0(directory, "/", "ui.R"))
 source(paste0(directory, "/", "server.R"))
@@ -77,7 +77,7 @@ source(paste0(directory, "/", "run-methylation.R"))
 baseDir <- system.file("extdata", package="minfiData")
 targetsEx <- read.metharray.sheet(baseDir)
 RGSetEx <- read.metharray.exp(targets = targetsEx)
-summary1 <- shinySummarize(RGSetEx)
+#summary1 <- shinySummarize(RGSetEx)
 summary2 <- shinySummarizepr(RGSetEx)
 
 targetsEx$ID <- paste(targetsEx$Slide,targetsEx$Array, targetsEx$Sample_Name,targetsEx$Sample_Group, sep=".")
@@ -90,9 +90,9 @@ shinyApp(ui=ui.methylation(summary1,summary1.norm ), server = server.methylation
 
 
 ### Real data
-summary <- shinySummarize(rgSet)
-GRSet.norm <- preprocessNoob(rgSet)
-mSetSq <- ratioConvert(GRSet.norm)
+summary <- shinySummarizepr(rgSet)
+#GRSet.norm <- preprocessNoob(rgSet)
+#mSetSq <- ratioConvert(GRSet.norm)
 # Convert to GenomicRatioSet object.
 mSetSq <- mapToGenome(mSetSq)
 summary.norm <- shinySummarize(mSetSq)
