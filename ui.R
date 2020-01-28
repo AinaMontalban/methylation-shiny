@@ -54,7 +54,7 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                 tabPanel("Home", 
                          h3("Quality control"), 
                          br(),
-                        
+                         checkboxInput("addControl", "Include control type", value = FALSE),
                          downloadButton("report", "Generate report"),
                          hr(),
                          HTML("<div id=label>  </div>") ,
@@ -246,11 +246,7 @@ samples. </div>"),
                 ),
                 ######################   ----   Type I/TypeII Bias --------  
                 
-                tabPanel("Report", 
-                         checkboxGroupInput("selectedPlots", "Select:", choices = c("Raw Beta-values", 
-                                                                                    "Raw m-values", "Normalized beta-values", "Failed Probes", "PCA")),
-                         #downloadButton("report", "Generate report")
-                ))
+                )
             )
 
   )
