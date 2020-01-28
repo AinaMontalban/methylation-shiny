@@ -6,7 +6,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     unmethQuantiles <-  getUnmeth(shinyMethylSet1)
     cnQuantiles     <-  getCN(shinyMethylSet1)
     bMatrix <- shinyMethylSet1@betaMatrix
-    #mMatrix <- shinyMethylSet1@mMatrix
+    mMatrix <- shinyMethylSet1@mMatrix
     greenControls   <-  getGreenControls(shinyMethylSet1)
     redControls     <-  getRedControls(shinyMethylSet1)
     covariates      <<- pData(shinyMethylSet1)
@@ -385,31 +385,54 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     output$probesFailedPlot <- renderPlot({
       plotFailedPropProbes(detP = detP, targets$Sample_Name)
     })
+    output$report <- downloadHandler(
+      # For PDF output, change this to "report.pdf"
+      filename = "report.pdf",
+      content = function(file) {
+        # Copy the report file to a temporary directory before processing it, in
+        # case we don't have write permissions to the current working dir (which
+        # can happen when deployed).
+        tempReport <- file.path(directory, "qc.Rmd")
+        #file.copy("report1.Rmd", tempReport, overwrite = TRUE)
+        
+        # Set up parameters to pass to Rmd document
+        params <- list(data = shinyMethylSet1)
+        
+        # Knit the document, passing in the `params` list, and eval it in a
+        # child of the global environment (this isolates the code in the document
+        # from the code in this app).
+        rmarkdown::render(tempReport, output_file = file,
+                          params = params,
+                          envir = new.env(parent = globalenv())
+        )
+      }
+    )
 
+  
     # output$report <- downloadHandler(
     #   filename = function(){
-    #     paste("report", ".html", sep = "")
+    #     paste("report", ".pdf", sep = "")
     #   },
     #   content = function(file){
     #     tempReport <- file.path(directory, "report.Rmd")
     #     file.copy("report.Rmd", tempReport, overwrite = TRUE)
-    #     
+    # 
     #     # Set up parameters to pass to Rmd document
     #     #params = list(betaMatrix)
     #     # Knit the document, passing in the `params` list, and eval it in a
     #     # child of the global environment (this isolates the code in the document
     #     # from the code in this app).
     #     rmarkdown::render(tempReport, output_file = file,
-    #                       
+    # 
     #                       envir = new.env(parent = globalenv()))
-    #     
-    #     
-    #     
+    # 
+    # 
+    # 
     #     # pdf(file)
     #     # par(mfrow=c(2,2))
     #     # minfi::densityPlot(bMatrix, sampGroups = targets$Sample_Group)
-    #     # minfi::densityPlot(bMatrix2, sampGroups = targets$Sample_Group)   
-    #     # minfi::densityPlot(mMatrix2, sampGroups = targets$Sample_Group)   
+    #     # minfi::densityPlot(bMatrix2, sampGroups = targets$Sample_Group)
+    #     # minfi::densityPlot(mMatrix2, sampGroups = targets$Sample_Group)
     #     # plotFailedPropProbes(detP = detP, targets$Sample_Name)
     #     # dev.off()
     #   }
@@ -470,10 +493,11 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       #print(paste("shinyMethylSet created!"))
     })
     
-    output$SNPsPlot <- renderPlot(
-   #   
+    output$SNPsPlot <- renderPlot({
+    colnames(snps) <- covariates[,"Sample_Name"]
       #heatmap.2(snps, col=rev(heat.colors(16)), trace = "none")
-      heatmap.2(snps, trace = "none", col=colorRampPalette(c("yellow","orange","red"))(100))
+      heatmap.2(snps, trace = "none", cexCol = 0.5, col=colorRampPalette(c("yellow","orange","red"))(100))
+    }
     )
     
   

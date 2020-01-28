@@ -7,7 +7,7 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
   cnQuantiles     <- getCN(shinyMethylSet1)
   bMatrix <- shinyMethylSet1@betaMatrix
   
-  #mMatrix <- shinyMethylSet1@mMatrix
+  mMatrix <- shinyMethylSet1@mMatrix
   greenControls   <- getGreenControls(shinyMethylSet1)
   redControls     <- getRedControls(shinyMethylSet1)
   covariates      <<-pData(shinyMethylSet1)
@@ -54,6 +54,10 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                 tabPanel("Home", 
                          h3("Quality control"), 
                          br(),
+                        
+                         downloadButton("report", "Generate report"),
+                         hr(),
+                         HTML("<div id=label>  </div>") ,
                          p(strong("Summary")),
                          p(strong("Tab 1: Experiment")),
                          p(strong("Tab 2: Samples")),
@@ -245,7 +249,7 @@ samples. </div>"),
                 tabPanel("Report", 
                          checkboxGroupInput("selectedPlots", "Select:", choices = c("Raw Beta-values", 
                                                                                     "Raw m-values", "Normalized beta-values", "Failed Probes", "PCA")),
-                         downloadButton("report", "Generate report")
+                         #downloadButton("report", "Generate report")
                 ))
             )
 

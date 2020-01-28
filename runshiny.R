@@ -67,7 +67,6 @@ directory <- "/home/aina/Internship/methylation-shiny"
 source(paste0(directory, "/", "ui.R"))
 source(paste0(directory, "/", "server.R"))
 source(paste0(directory, "/", "shinyMethylSet.R"))
-source(paste0(directory, "/", "shinySummarize0.R"))
 source(paste0(directory, "/", "plotDensities.R"))
 source(paste0(directory, "/", "plotPCA.R"))
 source(paste0(directory, "/", "plotPropFailedProbes.R"))

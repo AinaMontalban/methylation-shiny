@@ -1,0 +1,70 @@
+---
+title: "Quality Control Report"
+author: "Aina Montalban"
+date: "1/28/2020"
+output: 
+  pdf_document:
+    df_print: kable
+geometry: margin=1in
+params:
+  data: shinyMethylSet1
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Targets
+
+```{r}
+rgSet <- params$data
+targets <- rgSet@phenotype
+directory <- "~/Documents/methylation-shiny"
+# source(paste0(directory, "/", "plotPCA.R"))
+# source(paste0(directory, "/", "plotPropFailedProbes.R"))
+```
+
+```{r}
+head(targets[,c("Sample_Name", "Sample_Group", "Array", "Slide", "age", "sex", "status")], 10)
+```
+
+```{r}
+colnames(rgSet@snps) <- targets$Sample_Name
+heatmap.2(rgSet@snps, trace = "none",cexCol = 0.5 ,keysize=2,col=colorRampPalette(c("yellow","orange","red"))(100))
+```
+
+
+```{r cars}
+minfi::densityPlot(rgSet@betaMatrix, sampGroups = targets$Sample_Group)
+```
+
+
+```{r}
+
+xlab <- paste("PC 1", " scores", sep="")
+ylab <- paste("PC 2", " scores", sep="")
+xMin <- min(rgSet@pca$scores[,as.numeric(1)])
+xMax <- max(rgSet@pca$scores[,as.numeric(2)])
+xRange <- xMax - xMin
+xlim <- c(xMin-0.05*xRange, xMax+0.20*xRange)
+par(mfrow=c(1,2))
+plot(rgSet@pca$scores[,1], rgSet@pca$scores[,2],
+         col = 4, pch = 19, cex = 2, xlab = xlab,
+         ylab = ylab, xlim = xlim,
+         main = "Beta-values (PCA)",
+         cex.main = 1.5, cex.lab = 1.5, bty = "o")
+
+xlab <- paste("PC",as.numeric(1), " scores", sep="")
+ylab <- paste("PC",as.numeric(2), " scores", sep="")
+xMin <- min(rgSet@pca_m$scores[,as.numeric(1)])
+xMax <- max(rgSet@pca_m$scores[,as.numeric(2)])
+xRange <- xMax - xMin
+xlim <- c(xMin-0.05*xRange, xMax+0.20*xRange)
+
+plot(rgSet@pca_m$scores[,1], rgSet@pca_m$scores[,2],
+         col = 3, pch = 19, cex = 2, xlab = xlab,
+         ylab = ylab, xlim = xlim,
+         main = "M-values (PCA)",
+         cex.main = 1.5, cex.lab = 1.5, bty = "o")
+```
+

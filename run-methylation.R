@@ -63,7 +63,7 @@ setMethod("shinySummarizeNorm", signature(object = "GenomicRatioSet"),
                                      mQuantiles  = mQuantiles,
                                      betaQuantiles = betaQuantiles,
                                      betaMatrix = minfi::getBeta(object),
-                                     mMatrix = minfi::getBeta(object),
+                                     mMatrix = minfi::getM(object),
                                      
                                      methQuantiles = list(NULL),
                                      unmethQuantiles = list(NULL),
@@ -203,7 +203,7 @@ setMethod("shinySummarizepr", signature(object = "RGChannelSet"),
             ## To compute the principal components:
             numPositions = 20000
             autMatrix <- mMatrix[autosomal,]
-            rm(mMatrix)
+           # rm(mMatrix)
             gc(verbose=FALSE)
             o <- order(-rowVars(autMatrix))[1:numPositions]
             pca_m <- prcomp(t(autMatrix[o,]))
@@ -234,7 +234,7 @@ setMethod("shinySummarizepr", signature(object = "RGChannelSet"),
                                       mQuantiles  = mQuantiles,
                                       betaQuantiles = betaQuantiles,
                                       betaMatrix = minfi::getBeta(object),
-                                      mMatrix = matrix(NA),
+                                      mMatrix = mMatrix,
                                       methQuantiles = methQuantiles,
                                       unmethQuantiles = unmethQuantiles,
                                       cnQuantiles = cnQuantiles ,
