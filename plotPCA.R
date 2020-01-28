@@ -41,7 +41,7 @@
 #     # grid()
 # }
 # 
-plotPCA <- function(pca, pc1, pc2, col, covariates, selectedCov, bty="o"){
+plotPCA <- function(pca, pc1, pc2, col, covariates, selectedCov, bty="o", title){
     xMin <- min(pca[,as.numeric(pc1)])
     xMax <- max(pca[,as.numeric(pc1)])
     xRange <- xMax - xMin
@@ -52,7 +52,7 @@ plotPCA <- function(pca, pc1, pc2, col, covariates, selectedCov, bty="o"){
     plot(pca[,as.numeric(pc1)], pca[,as.numeric(pc2)],
          col = col, pch = 19, cex = 2, xlab = xlab,
          ylab = ylab, xlim = xlim,
-         main = "Principal component analysis (PCA)",
+         main = title,
          cex.main = 1.5, cex.lab = 1.5, bty = bty)
     uColor <- unique(col)
     uCov   <- unique(covariates[,match(selectedCov, colnames(covariates))])

@@ -16,6 +16,7 @@ require(base)
 require(reshape2)
 require(plotly)
 library(d3heatmap)
+require(gplots)
 # Set the directories where the data is stored
 # Full path of the folder
 full_path <- "/mnt/ElRaid/amontalban/PROJECTS/methylation/subset"

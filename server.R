@@ -78,7 +78,10 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       return(as.numeric(as.factor(covariates[,match(input$phenotype,
                                                     colnames(covariates))])))
     })
-    
+    sampleColorsPCA <- reactive({
+      return(as.numeric(as.factor(covariates[,match(input$phenoID,
+                                                    colnames(covariates))])))
+    })
     #########################################################
     ###########        Computation of the densities
     #########################################################
@@ -318,14 +321,15 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     output$pcaPlot <- renderPlot({
       set.palette(n=8, name=setColor())
       ##palette(brewer.pal(8,setColor()))
-      sampleColors()
+      colors <- sampleColorsPCA()
       if (method!="Merging"){
         plotPCA(pca = pca, 
                 pc1 = input$pc1,
                 pc2 = input$pc2,
-                col = sampleColors(),
+                col = colors,
                 covariates = covariates,
-                selectedCov = input$phenotype
+                selectedCov = input$phenotype,
+                title = "Beta-values (PCA)"
         )
       }
     })
@@ -333,14 +337,16 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     output$pca_mPlot <- renderPlot({
       set.palette(n=8, name=setColor())
       ##palette(brewer.pal(8,setColor()))
-      sampleColors()
+      colors <- sampleColorsPCA()
       if (method!="Merging"){
         plotPCA(pca = pca_m, 
                 pc1 = input$pc1,
                 pc2 = input$pc2,
-                col = sampleColors(),
+                col = colors,
                 covariates = covariates,
-                selectedCov = input$phenotype
+                selectedCov = input$phenotype,
+                title = "M-values (PCA)"
+                
         )
       }
     })
@@ -464,10 +470,10 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       #print(paste("shinyMethylSet created!"))
     })
     
-    output$SNPsPlot <- renderD3heatmap(
+    output$SNPsPlot <- renderPlot(
    #   
-      d3heatmap(snps, colors = "YlOrRd")
-      #heatmap.2(snps, trace = "none", col=colorRampPalette(c("darkblue","white","darkred"))(100))
+      #heatmap.2(snps, col=rev(heat.colors(16)), trace = "none")
+      heatmap.2(snps, trace = "none", col=colorRampPalette(c("yellow","orange","red"))(100))
     )
     
   
