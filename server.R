@@ -368,7 +368,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     })
     
     output$barplotPval <- renderPlot({
-      pal <- brewer.pal(8,"Paired")
+      #pal <- brewer.pal(8,"Paired")
       pval_means <- colMeans(detP)
       df_pval_means <- as.data.frame(pval_means)
       colnames(df_pval_means) <- "pvals"

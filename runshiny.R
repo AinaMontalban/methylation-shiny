@@ -100,4 +100,16 @@ summary.norm <- shinySummarize(mSetSq)
 shinyApp(ui=ui.methylation(summary), server = server.methylation(summary))
 shinyApp(ui=ui.methylation(summary,summary.norm ), server = server.methylation(summary, summary.norm))
   
-cat(paste0(directory, "/", "server.R"))
+dataDirectory <- system.file("extdata", package = "methylationArrayAnalysis")
+# list the files
+list.files(dataDirectory, recursive = TRUE)
+targetsEx1 <- read.metharray.sheet(dataDirectory, pattern="SampleSheet.csv")
+targetsEx1
+rgSetEx1 <- read.metharray.exp(targets=targetsEx1)
+rgSetEx1
+# give the samples descriptive names
+targetsEx1$ID <- paste(targetsEx1$Sample_Group,targetsEx1$Sample_Name,sep=".")
+sampleNames(rgSetEx1) <- targetsEx1$ID
+rgSetEx1
+summary3 <- shinySummarizepr(rgSetEx1)
+shinyApp(ui=ui.methylation(summary3), server = server.methylation(summary3))
