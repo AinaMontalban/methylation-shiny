@@ -24,7 +24,8 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     colnames(snps) <- targets$Sample_Name
     method <- shinyMethylSet1@originObject
     RGSET <- shinyMethylSet1@RGSET
-    
+    normalized <- shinyMethylSet1@norm
+    otherNorm <- FALSE
     ## In the case covariates is empty:
     if (ncol(covariates)==0){
       covariates <- data.frame(slide = slideNames, plate = plateNames)
@@ -111,10 +112,19 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
                        c("I Green","I Red","II","X","Y"))
       if (input$mOrBeta=="Beta-value"){
         bw <- 1
-        quantiles <- norm()@betaQuantiles[[index]]
+        if (input$normButton){
+          quantiles <- norm()@betaQuantiles[[index]]
+        } else {
+          quantiles <- normalized@betaQuantiles[[index]]
+        }
       } else {
         bw <- 1
+        if (input$normButton){
         quantiles <- norm()@mQuantiles[[index]]
+        } else {
+          quantiles <- normalized@mQuantiles[[index]]
+          
+        }
       }
       matrix <- apply(quantiles, 2, function(x){
         d <- density(x, bw = bw, n =512)
@@ -196,15 +206,24 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
           main = "Normalized data (Beta values)"
           xlab = "Beta-values"
           bw <- 1
+          if (input$normButton){
+            minfi::densityPlot(norm()@betaMatrix, sampGroups = groupNames)
+          } else {
+            minfi::densityPlot(normalized@betaMatrix, sampGroups = groupNames)
+          }
           #quantiles =  shinyMethylSet2@betaQuantiles[[index]]
-          minfi::densityPlot(norm()@betaMatrix, sampGroups = groupNames)
         } else {
           xlim <- c(-8,8)
           ylim <- c(0, 0.35)
           from = -10; to = 10;
           main = "Normalized data (M values)"
           xlab = "M-values"
+          otherNorm
+          if (input$normButton){
           quantiles =  norm()@mQuantiles[[index]]
+          } else {
+            quantiles =  normalized@mQuantiles[[index]]
+          }
           bw <- 1
 
 
@@ -466,6 +485,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     
     
     norm <- eventReactive(input$normButton, {
+      otherNorm <- TRUE
       norm_method <- input$normID
       if (norm_method == "Quantile"){
         mSetSq <- preprocessQuantile(RGSET)
@@ -474,11 +494,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       } else if (norm_method == "SWAN") {
         mSetSq <- preprocessSWAN(RGSET)
       } else if (norm_method == "ssNoob") {
-        mSetSq <- preprocessNoob(RGSET, dyeMethod = "single")
-        # Convert to RatioSet object.
-        mSetSq <- ratioConvert(mSetSq)
-        # Convert to GenomicRatioSet object.
-        mSetSq <- mapToGenome(mSetSq)
+       normalized
       } else if (norm_method == "Illumina") {
         mSetSq <- preprocessIllumina(RGSET, bg.correct = TRUE, normalize = "controls",
                                      reference = 1)
@@ -489,6 +505,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       } else {
         stop("[ERROR] normalization method not correctly specified.")
       }
+      otherNorm <- TRUE
       prov <- shinySummarizeNorm(mSetSq)
       #print(paste("shinyMethylSet created!"))
     })

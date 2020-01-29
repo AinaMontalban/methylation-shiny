@@ -27,7 +27,7 @@ setMethod("shinySummarizeNorm", signature(object = "GenomicRatioSet"),
             }
             
             
-            cat("[shinySummarize] Computing methylation values \n")
+            cat("[shinySummarizeNorm] Computing methylation values beta-values \n")
             betaMatrix <- minfi::getBeta(object)
             mMatrix    <- minfi::getM(object)
             cnMatrix   <- minfi::getCN(object)
@@ -40,7 +40,7 @@ setMethod("shinySummarizeNorm", signature(object = "GenomicRatioSet"),
             names(betaQuantiles) <- names(probe.indices)
             mQuantiles <- cnQuantiles <-  betaQuantiles 
             
-            cat("[shinySummarize] Computing quantiles \n")   
+            cat("[shinySummarizeNorm] Computing quantiles \n")   
             ## To compute the quantiles: 
             for (i in 1:length(probe.indices)){
               betaQuantiles[[i]] <- t(colQuantiles(betaMatrix[probe.indices[[i]],], probs=probs, na.rm=TRUE))
@@ -49,7 +49,7 @@ setMethod("shinySummarizeNorm", signature(object = "GenomicRatioSet"),
               names(betaQuantiles[[i]]) <- names(mQuantiles[[i]]) <- names(cnQuantiles[[i]]) <- colnames(object)  
             }
             
-            cat("[shinySummarize] Computing principal components \n")
+            cat("[shinySummarizeNorm] Computing principal components beta-values \n")
             ## To compute the principal components:
             numPositions = 20000
             autMatrix <- betaMatrix[autosomal,]
@@ -58,6 +58,19 @@ setMethod("shinySummarizeNorm", signature(object = "GenomicRatioSet"),
             pca <- prcomp(t(autMatrix[o,]))
             pca <- list(scores = pca$x, percs = (pca$sdev^2)/(sum(pca$sdev^2))*100)
             names(pca$percs) <- colnames(object)
+            
+            cat("[shinySummarizeNorm] Computing principal components m-values \n")
+            ## To compute the principal components:
+            numPositions = 20000
+            autMatrix <- mMatrix[autosomal,]
+            # rm(mMatrix)
+            gc(verbose=FALSE)
+            o <- order(-rowVars(autMatrix))[1:numPositions]
+            pca_m <- prcomp(t(autMatrix[o,]))
+            pca_m = list(scores = pca_m$x, percs = (pca_m$sdev^2)/(sum(pca_m$sdev^2))*100)
+            names(pca_m$percs) <- colnames(object)
+            
+            
             object <- shinyMethylSet(sampleNames = colnames(object),
                                      phenotype   = as.data.frame(minfi::pData(object)),
                                      mQuantiles  = mQuantiles,
@@ -210,22 +223,16 @@ setMethod("shinySummarizepr", signature(object = "RGChannelSet"),
             pca_m = list(scores = pca_m$x, percs = (pca_m$sdev^2)/(sum(pca_m$sdev^2))*100)
             names(pca_m$percs) <- colnames(object)
             
-            # numPositions = 20000
-            # autMatrix <- mMatrix[autosomal,]
-            # rm(mMatrix)
-            # gc(verbose=FALSE)
-            # o <- order(-rowVars(autMatrix))[1:numPositions]
-            # pca <- prcomp(t(autMatrix[o,]))
-            # pca = list(scores = pca$x, percs = (pca$sdev^2)/(sum(pca$sdev^2))*100)
-            # names(pca$percs) <- colnames(object)
-            #cat("[shinySummarize] Normalizing with ssNoob \n")
-            ## To compute the normalization:              
-            #MSet.noob <- preprocessNoob(object)
-            #mSetSq <- ratioConvert(GRSet.norm)
-            # Convert to GenomicRatioSet object.
-            #cat("[shinySummarize] --------> Convert to GenomicRatioSet object. \n")
-            #mSetSq <- mapToGenome(mSetSq)
-            #summary.norm <- shinySummarizeNorm(mSetSq)              
+         
+            cat("[shinySummarize] Normalizing with ssNoob \n")
+            # To compute the normalization:
+            MSet.noob <- preprocessNoob(object)
+            mSetSq <- ratioConvert(MSet.noob)
+           #Convert to GenomicRatioSet object.
+            cat("[shinySummarize] ------> Convert to GenomicRatioSet object. \n")
+            mSetSq <- mapToGenome(mSetSq)
+            cat("[shinySummarize] ------> Convert to ShinyMethylSet object. \n")
+            norm <- shinySummarizeNorm(mSetSq)
             
             RGSET <- object
             
@@ -246,7 +253,8 @@ setMethod("shinySummarizepr", signature(object = "RGChannelSet"),
                                       originObject = "RGChannelSet",
                                       array = object@annotation[["array"]],
                                       RGSET = RGSET,
-                                      snps = snps
+                                      snps = snps,
+                                      norm = norm
             )
             object
           })

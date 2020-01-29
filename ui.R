@@ -27,7 +27,7 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
   method <- shinyMethylSet1@originObject
   sampleColors <<- as.numeric(as.factor(plateNames))
   snps <- shinyMethylSet1@snps
-
+  
   ## In the case covariates is empty:
   if (ncol(covariates)==0){
     covariates <- data.frame(slide = slideNames, plate = plateNames)
@@ -50,7 +50,7 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
             mainPanel(
               navbarPage(
                 ###########################  ---  Home   ------------ 
-                title=p(strong("Quality control")),
+                #title=p(strong("Quality control")),
                 tabPanel("Home", 
                          h3("Quality control"), 
                          br(),
@@ -71,7 +71,7 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                          br(),
                          
                          
-                        
+                         
                          
                 ),
                 tabPanel("Experiment",
@@ -184,10 +184,10 @@ samples. </div>"),
                 ),
                 tabPanel("PCA",
                          sidebarLayout(
-                          
+                           
                            splitLayout(
-                           plotOutput("pcaPlot"),
-                           plotOutput("pca_mPlot")
+                             plotOutput("pcaPlot"),
+                             plotOutput("pca_mPlot")
                            ),
                            
                            verticalLayout(
@@ -204,51 +204,51 @@ samples. </div>"),
                                            list("Batch"),
                                            multiple= FALSE, 
                                            selected="Batch")})),
-                              
-                             HTML("
+                         
+                         HTML("
 <p style=\"color:#000000;font-size:17px\">A. Choose two principal components to visualize: </span></p>
 "),
-                             selectInput("pc1", "PC in x:",
-                                         seq(1,ncol(betaQuantiles[[1]]),1),
-                                         multiple=FALSE, 
-                                         selected=1),
-                             
-                             
-                             selectInput("pc2", "PC in y:",
-                                         seq(1,ncol(betaQuantiles[[1]]),1),
-                                         multiple=FALSE, 
-                                         selected=2),
-                             HTML("
+                         selectInput("pc1", "PC in x:",
+                                     seq(1,ncol(betaQuantiles[[1]]),1),
+                                     multiple=FALSE, 
+                                     selected=1),
+                         
+                         
+                         selectInput("pc2", "PC in y:",
+                                     seq(1,ncol(betaQuantiles[[1]]),1),
+                                     multiple=FALSE, 
+                                     selected=2),
+                         HTML("
 <p style=\"color:#000000;font-size:17px\">B. Choose a principal component to explore below:</span></p>
 "),   
-                             selectInput("pcToExplore", "PC:",
-                                         seq(1,ncol(betaQuantiles[[1]]),1),
-                                         multiple=FALSE, 
-                                         selected=1),
-                             
-                             HTML("
+                         selectInput("pcToExplore", "PC:",
+                                     seq(1,ncol(betaQuantiles[[1]]),1),
+                                     multiple=FALSE, 
+                                     selected=1),
+                         
+                         HTML("
 <p style=\"color:#000000;font-size:17px\">C. Choose a covariate to regress against the chosen PC:</span></p>
 "),   
-                             if (exists("covariates")){
-                               choices <- colnames(covariates)
-                               selectInput("covToRegress", "Covariate:",
-                                           choices,
-                                           multiple= FALSE)
-                             } else {
-                               selectInput("covToRegress", "Covariate:",
-                                           list("Batch"),
-                                           multiple= FALSE, 
-                                           selected="Batch")},
+                         if (exists("covariates")){
+                           choices <- colnames(covariates)
+                           selectInput("covToRegress", "Covariate:",
+                                       choices,
+                                       multiple= FALSE)
+                         } else {
+                           selectInput("covToRegress", "Covariate:",
+                                       list("Batch"),
+                                       multiple= FALSE, 
+                                       selected="Batch")},
                          HTML("
 <p style=\"color:#000000;font-size:17px\">Association with the PC:</span></p>
 "), 
                          verbatimTextOutput(outputId = "modelPrint")
-                ),
+                )
                 ######################   ----   Type I/TypeII Bias --------  
                 
-                )
+              )
             )
-
+            
   )
   
 }

@@ -19,7 +19,8 @@ setClass("shinyMethylSet",
                         originObject = "character",
                         array = "character",
                         RGSET = "RGChannelSet",
-                        snps = "matrix"
+                        snps = "matrix",
+                        norm = "shinyMethylSet"
                         )
          )
 
@@ -157,7 +158,8 @@ shinyMethylSet <- function(sampleNames = new("character"),
                            originObject = new("character"),
                            array = new("character"),
                            RGSET = new("RGChannelSet"),
-                           snps = new("matrix")
+                           snps = new("matrix"),
+                           norm = new("shinyMethylSet")
                            ) {
     set <- new("shinyMethylSet", 
                sampleNames = sampleNames,
@@ -178,7 +180,8 @@ shinyMethylSet <- function(sampleNames = new("character"),
                originObject = originObject, 
                array = array,
                RGSET = RGSET,
-               snps = snps
+               snps = snps,
+               norm = norm
                )
     set
 }
