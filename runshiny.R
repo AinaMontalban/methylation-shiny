@@ -63,7 +63,7 @@ rgSet
 
 
 directory <- "~/Documents/methylation-shiny"
-directory <- "/home/aina/Internship/methylation-shiny"
+#directory <- "/home/aina/Internship/methylation-shiny"
 source(paste0(directory, "/", "ui.R"))
 source(paste0(directory, "/", "server.R"))
 source(paste0(directory, "/", "shinyMethylSet.R"))
@@ -106,10 +106,13 @@ list.files(dataDirectory, recursive = TRUE)
 targetsEx1 <- read.metharray.sheet(dataDirectory, pattern="SampleSheet.csv")
 targetsEx1
 rgSetEx1 <- read.metharray.exp(targets=targetsEx1)
-rgSetEx1
 # give the samples descriptive names
 targetsEx1$ID <- paste(targetsEx1$Sample_Group,targetsEx1$Sample_Name,sep=".")
 sampleNames(rgSetEx1) <- targetsEx1$ID
 rgSetEx1
+# Comprovacio preprocessIllumina
+# rgSetEx1Norm <-preprocessIllumina(rgSetEx1)
+# densityBeanPlot(rgSetEx1Norm)
+# densityPlot(rgSetEx1Norm, sampGroups = pData(rgSetEx1Norm)$Sample_Group)
 summary3 <- shinySummarizepr(rgSetEx1)
 shinyApp(ui=ui.methylation(summary3), server = server.methylation(summary3))

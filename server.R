@@ -262,23 +262,51 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
         paste("norm_bvalues", ".csv", sep = "")
       },
       content = function(file) {
+        if (input$normButton){
         bMatrix <- norm()@betaMatrix
+        } else {
+          bMatrix <- normalized@betaMatrix
+        }
         write.csv(bMatrix, file)
       }
     )
-    output$plotDownload <- downloadHandler(
+
+    output$mMatrixDownload <- downloadHandler(
       
       filename = function() {
-        paste("qcMB_report", ".png", sep = "")
+        paste("raw_bvalues", ".csv", sep = "")
       },
       content = function(file) {
-        png(file)
-        minfi::densityPlot(bMatrix, sampGroups = targets$Sample_Group)
-        minfi::densityPlot(bMatrix2, sampGroups = targets$Sample_Group)
-        dev.off()
+        mMatrix <- shinyMethylSet1@mMatrix
+        write.csv(mMatrix, file)
       }
-    )  
+    )
+    output$mMatrixNormDownload <- downloadHandler(
+      
+      filename = function() {
+        paste("norm_bvalues", ".csv", sep = "")
+      },
+      content = function(file) {
+        if (input$normButton){
+          mMatrix <- norm()@mMatrix
+        } else {
+          mMatrix <- normalized@mMatrix
+        }
+        write.csv(mMatrix, file)
+      }
+    )
     
+    # output$DrawButton <- downloadHandler({
+    #   filename =  "rawDensityPlot_bvals.png"
+    #   content = function(file){
+    #     png(file)
+    #     minfi::densityPlot(bMatrix, sampGroups = groupNames)
+    #     dev.off()
+    #   }
+    #   
+    # }
+    # )
+
     output$controlTypePlotGreen <- renderPlot({
       cnt <- input$controlType
       
@@ -289,29 +317,34 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
         threshold <- 5 # you can increase the threshold
       } else {threshold <- 0}
       
-      if (length(sampleNames) >= 50){
+      if (length(sampleNames) >= 5){
           arr <- input$arrayID
           column_names <- colnames(greenControls[[cnt]])
-          array_names <- substr(column_names, nchar(slideNames[1]) + 2, nchar(slideNames[1]) + 7)
-          colnames(greenControls[[cnt]]) <- array_names
-          gC <- as.data.frame(greenControls[[cnt]])[arr]
+          idx_col <- grep(arr, column_names)
+          subset <- greenControls[[cnt]][, idx_col]
+          # array_names <- substr(colnames(subset), nchar(slideNames[1]) + 2, nchar(slideNames[1]) + 7)
+          # colnames(subset) <- array_names
+          title <- paste("-", arr)
+          
       }  else {
-            gC <- as.data.frame(greenControls[[cnt]])
+            subset <- greenControls[[cnt]]
+            title <- ""
           }
         
       
-      log2_subset_GC <- log2(as.matrix(gC))
+      log2_subset_GC <- log2(subset)
       df_subset_GC <- melt(log2_subset_GC)
       ggplot(data=as.data.frame(df_subset_GC), aes(x=Var2, y=value)) + 
         geom_point(color="darkgreen", size=1.5) + scale_y_continuous(limits = c(-1, 20)) + 
         theme(axis.text.x = element_text(hjust = 1, angle=45)) +
-        geom_hline(yintercept =threshold, linetype="dashed") + ylab("Log2 Intensity") +
-        scale_x_discrete(labels=plateNames) + xlab("Samples") + ggtitle("Green Channel")
+        geom_hline(yintercept =threshold, linetype="dashed") + ylab("Log2 Intensity") + xlab("Samples") + ggtitle(paste("Green Channel",title)) +
+         scale_x_discrete(labels=groupNames) 
       
     }
     )
     
     output$controlTypePlotRed <- renderPlot({
+      cnt <- input$controlType
       
       if (input$controlType %in% c("BISULFITE CONVERSION I", "BISULFITE CONVERSION II", "HYBRIDIZATION", "SPECIFICITY I", 
                                    "SPECIFICITY II", "TARGET REMOVAL")){
@@ -320,14 +353,26 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
         threshold <- 5 # you can increase the threshold
       } else {threshold <- 0}
       
-      cnt <- input$controlType
-      log2_subset_GC <- log2(redControls[[cnt]])
+      if (length(sampleNames) >= 5){
+        arr <- input$arrayID
+        column_names <- colnames(greenControls[[cnt]])
+        idx_col <- grep(arr, column_names)
+        subset <- greenControls[[cnt]][, idx_col]
+        title <- paste("-", arr)
+        # array_names <- substr(colnames(subset), nchar(slideNames[1]) + 2, nchar(slideNames[1]) + 7)
+        # colnames(subset) <- array_names
+      }  else {
+        subset <- greenControls[[cnt]]
+        title <- ""
+      }
+      
+      log2_subset_GC <- log2(subset)
       df_subset_GC <- melt(log2_subset_GC)
       ggplot(data=as.data.frame(df_subset_GC), aes(x=Var2, y=value)) + 
         geom_point(color="red", size=1.5) + scale_y_continuous(limits = c(-1, 20)) + 
         theme(axis.text.x = element_text(hjust = 1, angle=45)) +
         geom_hline(yintercept =threshold, linetype="dashed") + ylab("Log2 Intensity") + 
-        scale_x_discrete(labels=plateNames) + xlab("Samples") + ggtitle("Red Channel") 
+        scale_x_discrete(labels=plateNames) + xlab("Samples") + ggtitle(paste("Red Channel", title))
     }
     )
     
@@ -427,35 +472,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       }
     )
 
-  
-    # output$report <- downloadHandler(
-    #   filename = function(){
-    #     paste("report", ".pdf", sep = "")
-    #   },
-    #   content = function(file){
-    #     tempReport <- file.path(directory, "report.Rmd")
-    #     file.copy("report.Rmd", tempReport, overwrite = TRUE)
-    # 
-    #     # Set up parameters to pass to Rmd document
-    #     #params = list(betaMatrix)
-    #     # Knit the document, passing in the `params` list, and eval it in a
-    #     # child of the global environment (this isolates the code in the document
-    #     # from the code in this app).
-    #     rmarkdown::render(tempReport, output_file = file,
-    # 
-    #                       envir = new.env(parent = globalenv()))
-    # 
-    # 
-    # 
-    #     # pdf(file)
-    #     # par(mfrow=c(2,2))
-    #     # minfi::densityPlot(bMatrix, sampGroups = targets$Sample_Group)
-    #     # minfi::densityPlot(bMatrix2, sampGroups = targets$Sample_Group)
-    #     # minfi::densityPlot(mMatrix2, sampGroups = targets$Sample_Group)
-    #     # plotFailedPropProbes(detP = detP, targets$Sample_Name)
-    #     # dev.off()
-    #   }
-    # )
+
     
     output$beanPlot <-renderPlot({
       # Function to subset the CpGs
@@ -489,12 +506,15 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       norm_method <- input$normID
       if (norm_method == "Quantile"){
         mSetSq <- preprocessQuantile(RGSET)
+        shinySummarizeNorm(mSetSq)
       } else if (norm_method == "Funnorm") {
         mSetSq <- preprocessFunnorm(RGSET)
+        shinySummarizeNorm(mSetSq)
       } else if (norm_method == "SWAN") {
         mSetSq <- preprocessSWAN(RGSET)
+        shinySummarizeNorm(mSetSq)
       } else if (norm_method == "ssNoob") {
-       normalized
+        normalized
       } else if (norm_method == "Illumina") {
         mSetSq <- preprocessIllumina(RGSET, bg.correct = TRUE, normalize = "controls",
                                      reference = 1)
@@ -502,11 +522,11 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
         mSetSq <- ratioConvert(mSetSq)
         # Convert to GenomicRatioSet object.
         mSetSq <- mapToGenome(mSetSq)
+        shinySummarizeNorm(mSetSq)
       } else {
         stop("[ERROR] normalization method not correctly specified.")
       }
-      otherNorm <- TRUE
-      prov <- shinySummarizeNorm(mSetSq)
+      
       #print(paste("shinyMethylSet created!"))
     })
     

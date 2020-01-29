@@ -21,6 +21,7 @@ knitr::opts_chunk$set(echo = FALSE)
 ```{r}
 rgSet <- params$data
 targets <- rgSet@phenotype
+norm <- rgSet@norm
 directory <- "~/Documents/methylation-shiny"
 # source(paste0(directory, "/", "plotPCA.R"))
 # source(paste0(directory, "/", "plotPropFailedProbes.R"))
@@ -62,8 +63,15 @@ ggplot(df_pval_means, aes(x=rownames(df_pval_means), y=pvals)) +
 ```{r cars}
 par(mfrow=c(1,2))
 minfi::densityPlot(rgSet@betaMatrix, sampGroups = targets$Sample_Group, main="Beta-values", legend = FALSE)
-minfi::densityPlot(rgSet@mMatrix, sampGroups = targets$Sample_Group, main="M-values", xlab="M values", legend = FALSE)
+minfi::densityPlot(norm@mMatrix, sampGroups = targets$Sample_Group, main="M-values", xlab="M values", legend = FALSE)
 
+```
+
+
+```{r}
+par(mfrow=c(1,2))
+minfi::densityPlot(rgSet@mMatrix, sampGroups = targets$Sample_Group, main="M-values", xlab="M values", legend = FALSE)
+minfi::densityPlot(norm@mMatrix, sampGroups = targets$Sample_Group, main="M-values", xlab="M values", legend = FALSE)
 ```
 
 
@@ -94,5 +102,7 @@ plot(rgSet@pca_m$scores[,1], rgSet@pca_m$scores[,2],
          ylab = ylab, xlim = xlim,
          main = "M-values (PCA)",
          cex.main = 1.5, cex.lab = 1.5, bty = "o")
+```
+```{r}
 ```
 

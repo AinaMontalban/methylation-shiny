@@ -50,7 +50,7 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
             mainPanel(
               navbarPage(
                 ###########################  ---  Home   ------------ 
-                #title=p(strong("Quality control")),
+                title=p(strong("Quality control")),
                 tabPanel("Home", 
                          h3("Quality control"), 
                          br(),
@@ -77,6 +77,8 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                 tabPanel("Experiment",
                          tableOutput("SampleSheetSubset"),
                          textOutput("SampleSheetInfo"),
+                         br(),
+                         br(), 
                          plotOutput("SNPsPlot")
                 ),
                 tabPanel("Samples", 
@@ -142,31 +144,44 @@ samples. </div>"),
                            selectInput("probeType", "Choose a probe type for the density curves:", 
                                        choices = c("I Green","I Red","II","X","Y"),
                                        selected="I Green"),
+                           HTML('<hr style="color: purple;">'),
                            hr(),
-                           hr(),
-                           hr(),
-                           HTML("<p><span style=\"color:#d66958;font-size:16px\">
+                           HTML("<p><span style=\"color:#0c0c0c;font-size:16px\">
 			      Download beta-values:</span></p>"),
                            downloadLink("betamatrixDownload", "raw_bvalues.csv"),
                            br(),
-                           br(),
-                           HTML("*Only "),
-                           br(), 
                            downloadLink("betamatrixNormDownload", "norm_bvalues.csv"),
+                           hr(),
+                           
+                           HTML("<p><span style=\"color:#0c0c0c;font-size:16px\">
+			      Download m-values:</span></p>"),
+                           downloadLink("mMatrixDownload", "raw_mvalues.csv"),
+                           br(),
+                           downloadLink("mMatrixNormDownload", "norm_mvalues.csv")
                          ),
                          mainPanel(
-                           selectInput("normID", "Choose Normalization method:", choices = c("Illumina", "SWAN", "Quantile", "ssNoob", "Funnorm", selected = "ssNoob")),
-                           actionButton("normButton", "Normalize"),
-                           ## Densities plot:
-                           HTML('<table border=0 width="100%"><tr bgcolor="#f5f5f5"><td>'),
-                           HTML('</td><td>'),
-                           ## Fast quality control plot:
-                           HTML('</td></tr></table>'),
-                           plotOutput("rawDensities", click="click_action"),
-                           verbatimTextOutput("click_info"),
+                           tabsetPanel(
+                             tabPanel("Density Plot", 
+                                      selectInput("normID", "Choose Normalization method:", choices = c("ssNoob", "SWAN", "Quantile", "Illumina", "Funnorm")),
+                                      actionButton("normButton", "Normalize"),
+                                      ## Densities plot:
+                                      HTML('<table border=0 width="100%"><tr bgcolor="#f5f5f5"><td>'),
+                                      HTML('</td><td>'),
+                                      ## Fast quality control plot:
+                                      HTML('</td></tr></table>'),
+                                      #downloadButton("DrawButton", "Download"),
+                                      plotOutput("rawDensities", click="click_action"),
+                                      verbatimTextOutput("click_info"),
+                                      
+                                      withSpinner(plotOutput("normDensities"))
+                                      
+                                      ),
+                             tabPanel("Bean Plot", 
+                                      plotOutput("beanPlot")
+                                      )
+                           )
                            
-                           plotOutput("normDensities"),
-                           plotOutput("beanPlot")
+                           
                            
                            #verbatimTextOutput(outputId = "cumulativeListPrint"),
                            #downloadLink("selectedSamples","selectedSamples.csv")
@@ -176,8 +191,8 @@ samples. </div>"),
                          HTML("<p><span style=\"color:#d66958;font-size:16px\">
 			      Step control</span></p>"),
                          selectInput("controlType", "Choose a control type:", 
-                                     choices = controlNames,selected=controlNames[1]),
-                         conditionalPanel(condition="length(sampleNames) >= 50", selectInput("arrayID", "Select array:", arrayNames)),
+                                     choices = controlNames),
+                         selectInput("arrayID", "Select array:", arrayNames),
                          verticalLayout(
                            plotOutput("controlTypePlotGreen"),
                            plotOutput("controlTypePlotRed"))
