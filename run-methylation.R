@@ -69,7 +69,7 @@ setMethod("shinySummarizeNorm", signature(object = "GenomicRatioSet"),
             pca_m <- prcomp(t(autMatrix[o,]))
             pca_m = list(scores = pca_m$x, percs = (pca_m$sdev^2)/(sum(pca_m$sdev^2))*100)
             names(pca_m$percs) <- colnames(object)
-            
+            GRSet <- object
             
             object <- shinyMethylSet(sampleNames = colnames(object),
                                      phenotype   = as.data.frame(minfi::pData(object)),
@@ -89,7 +89,8 @@ setMethod("shinySummarizeNorm", signature(object = "GenomicRatioSet"),
                                      detP = matrix(NA),
                                      originObject = "GenomicRatioSet",
                                      array = object@annotation[["array"]],
-                                     snps = matrix(NA)
+                                     snps = matrix(NA),
+                                     GRSet = GRSet
             )
             object
           })
@@ -255,6 +256,7 @@ setMethod("shinySummarizepr", signature(object = "RGChannelSet"),
                                       RGSET = RGSET,
                                       snps = snps,
                                       norm = norm
+                                      
             )
             object
           })

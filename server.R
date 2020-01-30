@@ -26,6 +26,10 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     RGSET <- shinyMethylSet1@RGSET
     normalized <- shinyMethylSet1@norm
     otherNorm <- FALSE
+    ann <- getAnnotation(RGSET)
+    
+    
+    
     ## In the case covariates is empty:
     if (ncol(covariates)==0){
       covariates <- data.frame(slide = slideNames, plate = plateNames)
@@ -545,4 +549,66 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
                      legendTitle = input$phenotype)
     }
     )
+    
+    ###############################################################
+    #    Remove poor quality samples
+    ###############################################################
+    # 
+    # output$poorQualitySample <- renderPrint({
+    #   remove_samples()[1]
+    #   remove_samples()[2]
+    #   remove_samples()[3]
+    #   
+    # })
+
+    remove_samples <- eventReactive(input$removeSamples, {
+      flag <- TRUE
+      keep <- colMeans(detP) < input$pvalThreshold
+      RGSET.filtered <- RGSET[, keep]
+      targets.filtered <- covariates[keep,]
+      # remove poor quality samples from detection p-value table
+      detP.filtered <- detP[,keep]
+      list(RGSET.filtered, targets.filtered, detP.filtered)      
+      # print(dim(detP))
+      # print(paste("Poor quality samples removed"))
+    })
+    
+    ###############################################################
+    #    Remove failed probes
+    ###############################################################
+    
+    # output$failedProbes <- renderPrint({
+    #   remove_probes()
+    # })
+    
+    remove_probes <- eventReactive(input$filtering, {
+      if (input$failedProbes){
+        detP <- detP[match(featureNames(norm@GRSet), rownames(detP)),]
+        # remove any probes that have failed in one or more samples
+        keep_nonfailedProbes <- rowSums(detP < input$pvalThresholdProbes) == ncol(norm@GRSet) 
+        which(keep_nonfailedProbes)
+      } 
+      if (input$sexProbes){
+        # if your data includes males and females, remove probes on the sex chromosomes
+        keep_nonsexchr <- !(featureNames(norm@GRSet) %in% ann$Name[ann$chr %in% 
+                                                              c("chrX","chrY")])
+      }
+      if (input$SNProbes){
+        mSetSqFlt <- dropLociWithSnps(mSetSqFlt)
+      } 
+      
+      if (input$reactiveProbes){
+        xReactiveProbes <- read.csv(file=paste(dataDirectory,
+                                               "48639-non-specific-probes-Illumina450k.csv",
+                                               sep="/"), stringsAsFactors=FALSE)
+        keep <- !(featureNames(mSetSqFlt) %in% xReactiveProbes$TargetID)
+        table(keep)
+      }
+    })
+    
+    
+    
+    
+    
+    
   }}

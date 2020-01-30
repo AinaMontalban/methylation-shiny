@@ -20,7 +20,8 @@ setClass("shinyMethylSet",
                         array = "character",
                         RGSET = "RGChannelSet",
                         snps = "matrix",
-                        norm = "shinyMethylSet"
+                        norm = "shinyMethylSet",
+                        GRSet = "GenomicRatioSet"
                         )
          )
 
@@ -159,7 +160,8 @@ shinyMethylSet <- function(sampleNames = new("character"),
                            array = new("character"),
                            RGSET = new("RGChannelSet"),
                            snps = new("matrix"),
-                           norm = new("shinyMethylSet")
+                           norm = new("shinyMethylSet"),
+                           GRSet = new("GenomicRatioSet")
                            ) {
     set <- new("shinyMethylSet", 
                sampleNames = sampleNames,
@@ -181,7 +183,8 @@ shinyMethylSet <- function(sampleNames = new("character"),
                array = array,
                RGSET = RGSET,
                snps = snps,
-               norm = norm
+               norm = norm,
+               GRSet = GRSet
                )
     set
 }

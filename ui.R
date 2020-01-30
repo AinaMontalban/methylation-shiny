@@ -262,13 +262,31 @@ samples. </div>"),
                 ),
                 
                 tabPanel("Filtering", 
-                         
+                         sidebarPanel(
+                         sliderInput("pvalThreshold", "Remove poor quality samples - Pval threshold", min = 0, max = 0.1, value=0.05),
+                         br(),
+                         sliderInput("pvalThresholdProbes", "Remove failed probes - Pval threshold", min = 0, max = 0.1, value=0.01),
+                          br()),
+                         mainPanel(
+                        checkboxGroupInput("whatRemove", "Remove probes", choices = c("Remove failed probes",
+                                                                                      "Remove probes on the sex chromosomes", 
+                                                                                      "Remove probes with SNPs at CpG site",
+                                                                                      "Exclude reactive probes")),
+                        actionButton("filtering", "Filter")
+                       
+                        )),
+                
+                tabPanel("Probe-wise differential methylation", 
+                         tabsetPanel(
+                           tabPanel("DMPs"),
+                           tabPanel("DMRs")
+                         )
                          )
                 ######################   ----   Type I/TypeII Bias --------  
                 
               )
             )
-            
+      
   )
   
 }
