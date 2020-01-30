@@ -79,7 +79,10 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
                          textOutput("SampleSheetInfo"),
                          br(),
                          br(), 
-                         plotOutput("SNPsPlot")
+                         plotOutput("SNPsPlot"),
+                         br(),
+                         br(), 
+                         plotOutput("design")
                 ),
                 tabPanel("Samples", 
                          verticalLayout(
@@ -206,12 +209,10 @@ samples. </div>"),
                            ),
                            
                            verticalLayout(
-                             HTML("
-<p style=\"color:#000000;font-size:17px\">A. Choose two  components to visualize: </span></p>
-"),
+                   
                              if (exists("covariates")){
                                choices <- colnames(covariates)
-                               selectInput("phenoID", "Phenotype:",
+                               selectInput("phenoID", "Color by:",
                                            choices,
                                            multiple= FALSE)
                              } else {
@@ -258,7 +259,11 @@ samples. </div>"),
 <p style=\"color:#000000;font-size:17px\">Association with the PC:</span></p>
 "), 
                          verbatimTextOutput(outputId = "modelPrint")
-                )
+                ),
+                
+                tabPanel("Filtering", 
+                         
+                         )
                 ######################   ----   Type I/TypeII Bias --------  
                 
               )

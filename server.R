@@ -317,43 +317,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
         threshold <- 5 # you can increase the threshold
       } else {threshold <- 0}
       
-      if (length(sampleNames) >= 5){
-          arr <- input$arrayID
-          column_names <- colnames(greenControls[[cnt]])
-          idx_col <- grep(arr, column_names)
-          subset <- greenControls[[cnt]][, idx_col]
-          # array_names <- substr(colnames(subset), nchar(slideNames[1]) + 2, nchar(slideNames[1]) + 7)
-          # colnames(subset) <- array_names
-          title <- paste("-", arr)
-          
-      }  else {
-            subset <- greenControls[[cnt]]
-            title <- ""
-          }
-        
-      
-      log2_subset_GC <- log2(subset)
-      df_subset_GC <- melt(log2_subset_GC)
-      ggplot(data=as.data.frame(df_subset_GC), aes(x=Var2, y=value)) + 
-        geom_point(color="darkgreen", size=1.5) + scale_y_continuous(limits = c(-1, 20)) + 
-        theme(axis.text.x = element_text(hjust = 1, angle=45)) +
-        geom_hline(yintercept =threshold, linetype="dashed") + ylab("Log2 Intensity") + xlab("Samples") + ggtitle(paste("Green Channel",title)) +
-         scale_x_discrete(labels=groupNames) 
-      
-    }
-    )
-    
-    output$controlTypePlotRed <- renderPlot({
-      cnt <- input$controlType
-      
-      if (input$controlType %in% c("BISULFITE CONVERSION I", "BISULFITE CONVERSION II", "HYBRIDIZATION", "SPECIFICITY I", 
-                                   "SPECIFICITY II", "TARGET REMOVAL")){
-        threshold <- 1
-      } else if (input$controlType %in% c("EXTENSION", "STAINING", "NON-POLYMORPHIC")){
-        threshold <- 5 # you can increase the threshold
-      } else {threshold <- 0}
-      
-      if (length(sampleNames) >= 5){
+      if (length(sampleNames) >= 50){
         arr <- input$arrayID
         column_names <- colnames(greenControls[[cnt]])
         idx_col <- grep(arr, column_names)
@@ -369,10 +333,43 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
       log2_subset_GC <- log2(subset)
       df_subset_GC <- melt(log2_subset_GC)
       ggplot(data=as.data.frame(df_subset_GC), aes(x=Var2, y=value)) + 
+        geom_point(color="darkgreen", size=1.5) + scale_y_continuous(limits = c(-1, 20)) + 
+        theme(axis.text.x = element_text(hjust = 1, angle=45)) +
+        geom_hline(yintercept =threshold, linetype="dashed") + ylab("Log2 Intensity") + 
+        scale_x_discrete(labels=groupNames) + xlab("Samples") + ggtitle(paste("Green Channel", title))
+    }
+    )
+    
+    output$controlTypePlotRed <- renderPlot({
+      cnt <- input$controlType
+      
+      if (input$controlType %in% c("BISULFITE CONVERSION I", "BISULFITE CONVERSION II", "HYBRIDIZATION", "SPECIFICITY I", 
+                                   "SPECIFICITY II", "TARGET REMOVAL")){
+        threshold <- 1
+      } else if (input$controlType %in% c("EXTENSION", "STAINING", "NON-POLYMORPHIC")){
+        threshold <- 5 # you can increase the threshold
+      } else {threshold <- 0}
+      
+      if (length(sampleNames) >= 50){
+        arr <- input$arrayID
+        column_names <- colnames(redControls[[cnt]])
+        idx_col <- grep(arr, column_names)
+        subset <- redControls[[cnt]][, idx_col]
+        title <- paste("-", arr)
+        # array_names <- substr(colnames(subset), nchar(slideNames[1]) + 2, nchar(slideNames[1]) + 7)
+        # colnames(subset) <- array_names
+      }  else {
+        subset <- redControls[[cnt]]
+        title <- ""
+      }
+      
+      log2_subset_GC <- log2(subset)
+      df_subset_GC <- melt(log2_subset_GC)
+      ggplot(data=as.data.frame(df_subset_GC), aes(x=Var2, y=value)) + 
         geom_point(color="red", size=1.5) + scale_y_continuous(limits = c(-1, 20)) + 
         theme(axis.text.x = element_text(hjust = 1, angle=45)) +
         geom_hline(yintercept =threshold, linetype="dashed") + ylab("Log2 Intensity") + 
-        scale_x_discrete(labels=plateNames) + xlab("Samples") + ggtitle(paste("Red Channel", title))
+        scale_x_discrete(labels=groupNames) + xlab("Samples") + ggtitle(paste("Red Channel", title))
     }
     )
     
@@ -512,6 +509,10 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
         shinySummarizeNorm(mSetSq)
       } else if (norm_method == "SWAN") {
         mSetSq <- preprocessSWAN(RGSET)
+        # Convert to RatioSet object.
+        mSetSq <- ratioConvert(mSetSq)
+        # Convert to GenomicRatioSet object.
+        mSetSq <- mapToGenome(mSetSq)
         shinySummarizeNorm(mSetSq)
       } else if (norm_method == "ssNoob") {
         normalized
@@ -538,4 +539,10 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     )
     
   
+    output$design <- renderPlot({
+      color <- covariates[,match(input$phenotype,colnames(covariates))]
+      plotDesign450k(as.character(sampleNames), covariates = color ,
+                     legendTitle = input$phenotype)
+    }
+    )
   }}

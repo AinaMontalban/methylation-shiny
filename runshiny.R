@@ -17,6 +17,7 @@ require(reshape2)
 require(plotly)
 library(d3heatmap)
 require(gplots)
+require(shinycssloaders)
 # Set the directories where the data is stored
 # Full path of the folder
 full_path <- "/mnt/ElRaid/amontalban/PROJECTS/methylation/subset"
@@ -71,6 +72,7 @@ source(paste0(directory, "/", "plotDensities.R"))
 source(paste0(directory, "/", "plotPCA.R"))
 source(paste0(directory, "/", "plotPropFailedProbes.R"))
 source(paste0(directory, "/", "run-methylation.R"))
+source(paste0(directory, "/", "plotDesign.R"))
 
 
 
