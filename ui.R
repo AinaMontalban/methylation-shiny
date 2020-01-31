@@ -28,6 +28,11 @@ ui.methylation <- function(shinyMethylSet1, shinyMethylSet2 = NULL){
   sampleColors <<- as.numeric(as.factor(plateNames))
   snps <- shinyMethylSet1@snps
   
+  which_contrasts <- function()
+  
+  
+  
+  
   ## In the case covariates is empty:
   if (ncol(covariates)==0){
     covariates <- data.frame(slide = slideNames, plate = plateNames)
@@ -261,25 +266,46 @@ samples. </div>"),
                          verbatimTextOutput(outputId = "modelPrint")
                 ),
                 
-                tabPanel("Filtering", 
-                         sidebarPanel(
-                         sliderInput("pvalThreshold", "Remove poor quality samples - Pval threshold", min = 0, max = 0.1, value=0.05),
-                         br(),
-                         sliderInput("pvalThresholdProbes", "Remove failed probes - Pval threshold", min = 0, max = 0.1, value=0.01),
-                          br()),
-                         mainPanel(
-                        checkboxGroupInput("whatRemove", "Remove probes", choices = c("Remove failed probes",
-                                                                                      "Remove probes on the sex chromosomes", 
-                                                                                      "Remove probes with SNPs at CpG site",
-                                                                                      "Exclude reactive probes")),
-                        actionButton("filtering", "Filter")
-                       
-                        )),
+                
                 
                 tabPanel("Probe-wise differential methylation", 
                          tabsetPanel(
-                           tabPanel("DMPs"),
-                           tabPanel("DMRs")
+                           tabPanel("1. Filtering", 
+                                    br(),
+                                    br(),
+                                    sidebarPanel(
+                                      sliderInput("pvalThreshold", "Remove poor quality samples - Pval threshold", min = 0, max = 0.1, value=0.05),
+                                      br(),
+                                      sliderInput("pvalThresholdProbes", "Remove failed probes - Pval threshold", min = 0, max = 0.1, value=0.01),
+                                      br()),
+                                    mainPanel(
+                                      checkboxGroupInput("whatRemove", "Remove probes", choices = c("Remove failed probes" = "failed",
+                                                                                                    "Remove probes on the sex chromosomes" = "sex", 
+                                                                                                    "Remove probes with SNPs at CpG site" = "SNP",
+                                                                                                    "Exclude reactive probes" = "reactive")),
+                                      actionButton("filtering", "Filter"),
+                                      verbatimTextOutput("failedProbes")
+                                      
+                                    )),
+                           tabPanel("2. DMPs", 
+                                    HTML("<p style=\"color:#000000;font-size:17px\">Contrasts:</span></p>"),
+                                    # Select factor of interests
+                                    br(),
+                                    br(),
+                                    
+                                    verbatimTextOutput("factor"),
+                                    actionButton("analysis", "Run Analysis"),
+                                    br(), 
+                                    br(),
+                                    HTML("
+<p style=\"color:#000000;font-size:17px\">Results:</span></p>
+"),  br(), 
+                                    tableOutput("resultsCpG"),
+                                    br(),
+                                    plotOutput("topCpGs")
+                                    ),
+                                   
+                           tabPanel("3. DMRs")
                          )
                          )
                 ######################   ----   Type I/TypeII Bias --------  

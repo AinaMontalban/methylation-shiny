@@ -20,7 +20,7 @@ require(gplots)
 require(shinycssloaders)
 # Set the directories where the data is stored
 # Full path of the folder
-full_path <- "/mnt/ElRaid/amontalban/PROJECTS/methylation/subset"
+full_path <- "/mnt/ElRaid/amontalban/PROJECTS/methylation"
 # Path of the IDAT files
 directory.IDAT<- file.path(full_path, "tmp", fsep = "/")
 # Path of the samplesheet file
@@ -32,7 +32,7 @@ directory.results <- file.path(full_path, "aina/results", fsep = "/")
 #===================#
 # A) Read targets
 #===================#
-targets <- read.metharray.sheet(directory.targets, pattern = "sample_sheet_PDX_subset.csv")
+targets <- read.metharray.sheet(directory.targets, pattern = "sample_sheet_PDX.csv")
 
 # Create a column called Bassename which specifies the location of each individual IDAT file
 # in the experiment

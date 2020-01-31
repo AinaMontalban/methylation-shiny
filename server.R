@@ -28,6 +28,7 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     otherNorm <- FALSE
     ann <- getAnnotation(RGSET)
     
+    GRSet <- normalized@GRSet
     
     
     ## In the case covariates is empty:
@@ -577,38 +578,78 @@ server.methylation <- function(shinyMethylSet1, shinyMethylSet2=NULL){
     #    Remove failed probes
     ###############################################################
     
-    # output$failedProbes <- renderPrint({
-    #   remove_probes()
-    # })
-    
-    remove_probes <- eventReactive(input$filtering, {
-      if (input$failedProbes){
-        detP <- detP[match(featureNames(norm@GRSet), rownames(detP)),]
-        # remove any probes that have failed in one or more samples
-        keep_nonfailedProbes <- rowSums(detP < input$pvalThresholdProbes) == ncol(norm@GRSet) 
-        which(keep_nonfailedProbes)
-      } 
-      if (input$sexProbes){
-        # if your data includes males and females, remove probes on the sex chromosomes
-        keep_nonsexchr <- !(featureNames(norm@GRSet) %in% ann$Name[ann$chr %in% 
-                                                              c("chrX","chrY")])
-      }
-      if (input$SNProbes){
-        mSetSqFlt <- dropLociWithSnps(mSetSqFlt)
-      } 
-      
-      if (input$reactiveProbes){
-        xReactiveProbes <- read.csv(file=paste(dataDirectory,
-                                               "48639-non-specific-probes-Illumina450k.csv",
-                                               sep="/"), stringsAsFactors=FALSE)
-        keep <- !(featureNames(mSetSqFlt) %in% xReactiveProbes$TargetID)
-        table(keep)
-      }
+    output$failedProbes <- renderPrint({
+       remove_probes()
     })
     
+    remove_probes <- eventReactive(input$filtering, {
+      
+      if ("failed" %in% input$whatRemove){
+        detP <- detP[match(featureNames(GRSet), rownames(detP)),]
+        # remove any probes that have failed in one or more samples
+        keep_nonfailedProbes <- rowSums(detP < input$pvalThresholdProbes) == ncol(GRSet) 
+        GRSet <- GRSet[keep_nonfailedProbes, ]
+      } 
+      
+      if ("sex" %in% input$whatRemove){
+        # if your data includes males and females, remove probes on the sex chromosomes
+        keep_nonsexchr <- !(featureNames(GRSet) %in% ann$Name[ann$chr %in% 
+                                                              c("chrX","chrY")])
+        GRSet <- GRSet[keep_nonsexchr, ]
+      }
+     
+      
+      if ("reactive" %in% input$whatRemove){
+        xReactiveProbes <- read.csv(file=paste("/mnt/ElRaid/amontalban/PROJECTS/methylation/illumina450k_filtering-master",
+                                               "48639-non-specific-probes-Illumina450k.csv",
+                                               sep="/"), stringsAsFactors=FALSE)
+        keep_reactiveProbes <- !(featureNames(GRSet) %in% xReactiveProbes$TargetID)
+        GRSet <- GRSet[keep_reactiveProbes, ]
+      }
+      
+      
+      if ("SNP" %in% input$whatRemove){
+        GRSet <- dropLociWithSnps(GRSet)
+      } 
+      GRSet
+    })
+    
+    output$factor <- renderPrint({
+      factorOfInterest <- factor(groupNames)
+      print((factorOfInterest[1]))
+    })
+    
+    run_analysis <- eventReactive(
+      input$analysis, {
+        GRSet.filtered <- remove_probes()
+        mVals <- getM(GRSet.filtered)
+        factorOfInterest <- factor(groupNames)
+        design <- model.matrix(~0+factorOfInterest, data = covariates)
+        colnames(design) <- levels(factorOfInterest)
+        fit <- lmFit(mVals, design)
+        print(unique(factorOfInterest)[[1]])
+        contr <- paste(as.character(unique(factorOfInterest)[2]), as.character(unique(factorOfInterest)[1]), sep = "-")
+        print(contr)
+        contMatrix <- makeContrasts(contrasts = contr, levels = design)
+        fit2 <- contrasts.fit(fit, contMatrix)
+        fit2 <- eBayes(fit2)
+        annSub <- ann[match(rownames(mVals), ann$Name), c(1:4, 22:24)]
+        DMPs <- topTable(fit2, num=Inf, coef = 1, genelist = annSub)
+        DMPs
+    })
+    
+    output$resultsCpG <- renderTable(
+      head(run_analysis())
+    )
     
     
-    
-    
+    output$topCpGs <- renderPlot({
+      GRSet.filtered <- remove_probes()
+      bVals <- getBeta(GRSet.filtered)
+      par(mfrow=c(1,2))
+      sapply(rownames(run_analysis())[1:2], function(cpg){
+        plotCpg(bVals, cpg=cpg, pheno=groupNames, ylab = "Beta values")
+      })
+    })
     
   }}
